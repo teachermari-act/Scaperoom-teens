@@ -1,1832 +1,562 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blackwood Manor (1984) - Tactical Command Feed</title>
-  <style>
-    :root {
-      --bg: #030305;
-      --blood: #8b0000;
-      --bright-red: #ff2233;
-      --amber: #fca311;
-      --glow-green: #39ff14;
-      --glow-cyan: #00e5ff;
-      --text-main: #f0edf5;
-      --text-muted: #b8b0c4;
-      --font-display: 'Courier New', Courier, monospace;
-      --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camp Nightwing 1978 // Central Terminal</title>
+<style>
+  :root {
+    --bg: #050403;
+    --panel: #110e0b;
+    --border: #382c20;
+    --accent-red: #c0392b;
+    --accent-green: #27ae60;
+    --accent-gold: #e67e22;
+    --text: #ecdcc9;
+    --muted: #8e7f70;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace, sans-serif; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background-image: radial-gradient(#1a140f 1px, transparent 1px);
+    background-size: 20px 20px;
+    overflow-x: hidden;
+  }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+  .game-container {
+    width: 100%;
+    max-width: 1060px;
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.95);
+    overflow: hidden;
+    position: relative;
+  }
 
-    html, body {
-      width: 100vw;
-      height: 100vh;
-      max-height: 100vh;
-      overflow: hidden;
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: var(--font-body);
-      display: flex;
-      flex-direction: column;
-    }
+  /* Retro CRT line effect */
+  .game-container::after {
+    content: " ";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    z-index: 25;
+    pointer-events: none;
+    opacity: 0.5;
+  }
 
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%),
-                  linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-      background-size: 100% 4px, 6px 100%;
-      pointer-events: none;
-      z-index: 99;
-    }
+  /* HUD Header */
+  .hud-top {
+    background: #17130f;
+    border-bottom: 2px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 30;
+    position: relative;
+  }
+  .hud-title {
+    font-size: 14px;
+    color: var(--accent-gold);
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+  .hud-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+  }
+  .rec-badge {
+    color: #e74c3c;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 1px;
+  }
+  .rec-dot {
+    width: 8px; height: 8px;
+    background: #e74c3c;
+    border-radius: 50%;
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
 
-    .terminal-header {
-      width: 100%;
-      height: 46px;
-      min-height: 46px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      background: #000;
-      border-bottom: 2px solid #331525;
-      color: var(--text-muted);
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-      z-index: 20;
-    }
+  /* Journey Route Tracker */
+  .journey-bar {
+    background: #0a0907;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+  .track-step {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    font-weight: bold;
+  }
+  .track-step.active { color: var(--accent-gold); }
+  .track-step.completed { color: #2ecc71; }
 
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
+  /* Inventory Bar */
+  .inventory-bar {
+    background: #0f0d0a;
+    border-bottom: 1px dashed var(--border);
+    padding: 6px 16px;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .inv-tag {
+    background: #201a14;
+    border: 1px solid #483827;
+    color: #e6af82;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
 
-    .rec-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--bright-red);
-      font-weight: bold;
-    }
+  /* ======================================================== */
+  /* SCREEN 1: BRIEFING                                       */
+  /* ======================================================== */
+  .screen-briefing {
+    padding: 40px 24px;
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .stamp {
+    display: inline-block;
+    border: 2px solid var(--accent-red);
+    color: var(--accent-red);
+    font-weight: bold;
+    font-size: 13px;
+    padding: 3px 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transform: rotate(-2deg);
+    margin-bottom: 14px;
+  }
+  .title-hero {
+    font-size: 32px;
+    letter-spacing: 4px;
+    color: #f5ece2;
+    margin-bottom: 6px;
+  }
+  .date-hero {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+  .briefing-box {
+    background: #090806;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #d8c8b4;
+    margin-bottom: 24px;
+  }
+  .briefing-box strong { color: var(--accent-gold); }
+  .btn-start {
+    background: var(--accent-red);
+    color: #fff;
+    border: none;
+    padding: 14px 36px;
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(192, 57, 43, 0.4);
+    transition: all 0.2s;
+  }
+  .btn-start:hover { background: #e74c3c; transform: translateY(-2px); }
 
-    .rec-dot {
-      width: 9px;
-      height: 9px;
-      background: var(--bright-red);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--bright-red);
-      animation: pulse 1s infinite alternate;
-    }
-    @keyframes pulse { from { opacity: 0.3; } to { opacity: 1; } }
+  /* ======================================================== */
+  /* SCREEN 2: POINT-AND-CLICK VIEWPORT                      */
+  /* ======================================================== */
+  .screen-game {
+    display: none;
+    position: relative;
+    user-select: none;
+  }
+  .viewport {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 590px;
+    background: #000;
+    overflow: hidden;
+  }
+  .viewport img.scene-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.5s ease;
+  }
 
-    .timer-hud {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #0c0812;
-      border: 1px solid #4a2842;
-      padding: 3px 12px;
-      border-radius: 4px;
-    }
+  /* Hotspot Overlays (Point-and-Click) */
+  .hotspot {
+    position: absolute;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px dashed rgba(230, 126, 34, 0.3);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .hotspot:hover {
+    background: rgba(230, 126, 34, 0.2);
+    border: 2px solid #e67e22;
+    box-shadow: 0 0 15px rgba(230, 126, 34, 0.6);
+  }
+  .hotspot-tag {
+    opacity: 0;
+    background: rgba(0, 0, 0, 0.85);
+    color: #f5ece2;
+    border: 1px solid #e67e22;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+    text-shadow: 0 0 4px #000;
+  }
+  .hotspot:hover .hotspot-tag { opacity: 1; }
 
-    .timer-label {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      letter-spacing: 1px;
-    }
+  /* Dynamic Location & Instruction Footer */
+  .viewport-footer {
+    background: #14110e;
+    border-top: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .loc-text {
+    color: var(--accent-gold);
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .feedback-text {
+    color: #ded0c0;
+    letter-spacing: 0.5px;
+  }
+  .btn-back {
+    background: #201a14;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    display: none;
+  }
+  .btn-back:hover { background: #33271c; border-color: var(--accent-gold); }
 
-    .timer-digits {
-      font-family: var(--font-display);
-      font-size: 1.35rem;
-      font-weight: bold;
-      color: var(--amber);
-      text-shadow: 0 0 8px rgba(252, 163, 17, 0.6);
-      background: #000;
-      padding: 1px 8px;
-      border-radius: 3px;
-      letter-spacing: 2px;
-      border: 1px solid #2e1b29;
-    }
+  /* Cinematic Notification Popups */
+  .toast {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 12, 9, 0.95);
+    border: 2px solid var(--accent-gold);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+    z-index: 30;
+    display: none;
+    animation: fadeIn 0.3s ease;
+    text-align: center;
+    max-width: 80%;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-    .timer-digits.warning {
-      color: var(--bright-red);
-      text-shadow: 0 0 12px rgba(255, 34, 51, 0.9);
-      border-color: var(--bright-red);
-      animation: pulse 0.8s infinite alternate;
-    }
-
-    .btn-timer-ctrl {
-      background: #1e1322;
-      border: 1px solid #5a3854;
-      color: #ff9ebb;
-      padding: 4px 8px;
-      font-size: 0.72rem;
-      font-family: var(--font-display);
-      cursor: pointer;
-      border-radius: 3px;
-      transition: all 0.2s;
-    }
-    .btn-timer-ctrl:hover {
-      background: #4a2d48;
-      color: #fff;
-    }
-
-    .main-stage {
-      flex: 1;
-      width: 100vw;
-      height: calc(100vh - 46px);
-      position: relative;
-      background: #000;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .view-screen {
-      display: none;
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      align-items: center;
-      justify-content: center;
-    }
-    .view-screen.active {
-      display: flex;
-    }
-
-    .full-bg-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      filter: contrast(106%) brightness(92%);
-    }
-
-    .intro-overlay {
-      position: absolute;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 840px;
-      background: rgba(9, 6, 13, 0.88);
-      border: 1.5px solid #4a2842;
-      border-left: 5px solid var(--bright-red);
-      border-radius: 6px;
-      padding: 22px 28px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.9);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      z-index: 10;
-    }
-
-    .intro-title {
-      font-family: var(--font-display);
-      font-size: 1rem;
-      color: var(--amber);
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .intro-text {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: #e4dfed;
-    }
-
-    .role-badge {
-      display: inline-block;
-      padding: 1px 7px;
-      border-radius: 3px;
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: bold;
-    }
-    .badge-a { background: #2b0b14; color: #ff7788; border: 1px solid #6b1424; }
-    .badge-b { background: #07202e; color: #4de1ff; border: 1px solid #144f6e; }
-
-    .btn-start-mission {
-      align-self: center;
-      margin-top: 6px;
-      background: var(--blood);
-      border: 2px solid var(--bright-red);
-      color: #fff;
-      padding: 12px 42px;
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: bold;
-      letter-spacing: 2px;
-      cursor: pointer;
-      border-radius: 4px;
-      box-shadow: 0 0 25px rgba(139, 0, 0, 0.75);
-      transition: all 0.25s ease;
-      text-transform: uppercase;
-    }
-    .btn-start-mission:hover {
-      background: var(--bright-red);
-      box-shadow: 0 0 35px rgba(255, 34, 51, 0.9);
-      transform: scale(1.03);
-    }
-
-    .terminal-box {
-      position: absolute;
-      bottom: 35px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(12, 9, 16, 0.9);
-      border: 2px solid #5a3350;
-      border-radius: 6px;
-      padding: 18px 28px;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.95);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      z-index: 10;
-      width: 90%;
-      max-width: 600px;
-    }
-
-    .terminal-title {
-      font-family: var(--font-display);
-      font-size: 0.88rem;
-      color: var(--amber);
-      letter-spacing: 2px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-
-    .input-row {
-      display: flex;
-      gap: 12px;
-      width: 100%;
-      justify-content: center;
-    }
-
-    .cipher-input {
-      background: #030205;
-      border: 2px solid #8b5380;
-      color: #fff;
-      font-family: var(--font-display);
-      font-size: 1.7rem;
-      font-weight: bold;
-      letter-spacing: 6px;
-      text-align: center;
-      padding: 8px 16px;
-      width: 240px;
-      text-transform: uppercase;
-      border-radius: 4px;
-      outline: none;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
-    }
-    .cipher-input:focus {
-      border-color: var(--glow-cyan);
-      box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
-    }
-
-    .btn-unlock {
-      background: var(--blood);
-      border: 1px solid #ff4455;
-      color: #fff;
-      padding: 10px 24px;
-      font-family: var(--font-display);
-      font-size: 1rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-    .btn-unlock:hover {
-      background: var(--bright-red);
-      box-shadow: 0 0 20px rgba(255, 34, 51, 0.6);
-    }
-
-    .status-msg {
-      font-family: var(--font-display);
-      font-size: 0.9rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-      min-height: 22px;
-      text-align: center;
-    }
-    .status-denied { color: var(--bright-red); }
-    .status-granted { color: var(--glow-green); }
-
-    /* HOTSPOTS DO SAGUÃO COM CONTROLE DE BLOQUEIO PROGRESSIVO */
-    .foyer-hotspot {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      background: rgba(12, 9, 16, 0.9);
-      border: 1.5px solid var(--glow-cyan);
-      color: var(--glow-cyan);
-      padding: 10px 16px;
-      font-family: var(--font-display);
-      font-size: 0.88rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
-      transition: all 0.25s ease;
-      z-index: 10;
-      backdrop-filter: blur(4px);
-    }
-    .foyer-hotspot:hover {
-      background: var(--glow-cyan);
-      color: #000;
-      box-shadow: 0 0 30px rgba(0, 229, 255, 0.9);
-      transform: translate(-50%, -50%) scale(1.06);
-    }
-
-    /* Estado trancado (antes de concluir a anterior) */
-    .hotspot-locked {
-      border-color: #554452 !important;
-      color: #776674 !important;
-      background: rgba(8, 6, 10, 0.85) !important;
-      box-shadow: none !important;
-      cursor: not-allowed !important;
-      filter: grayscale(80%);
-    }
-    .hotspot-locked:hover {
-      background: rgba(20, 10, 16, 0.9) !important;
-      color: var(--bright-red) !important;
-      border-color: var(--bright-red) !important;
-      transform: translate(-50%, -50%) !important;
-      box-shadow: 0 0 15px rgba(255, 34, 51, 0.4) !important;
-    }
-
-    /* Estado concluído */
-    .hotspot-cleared {
-      border-color: var(--glow-green) !important;
-      color: var(--glow-green) !important;
-      box-shadow: 0 0 20px rgba(57, 255, 20, 0.5) !important;
-    }
-    .hotspot-cleared:hover {
-      background: var(--glow-green) !important;
-      color: #000 !important;
-    }
-
-    #spot-study { top: 48%; left: 14%; }
-    #spot-crypt { top: 54%; left: 88%; }
-    #spot-cold { top: 58%; left: 65%; }
-    #spot-terminal { top: 22%; left: 64%; }
-
-    .foyer-bottom-bar {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 940px;
-      background: rgba(10, 7, 14, 0.92);
-      border: 1px solid #442a48;
-      border-radius: 6px;
-      padding: 10px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      backdrop-filter: blur(8px);
-      z-index: 10;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .foyer-title {
-      font-family: var(--font-display);
-      font-size: 0.85rem;
-      color: var(--amber);
-      font-weight: bold;
-      letter-spacing: 1.5px;
-    }
-    .foyer-buttons {
-      display: flex;
-      gap: 8px;
-    }
-    .btn-foyer-nav {
-      background: #17101e;
-      border: 1px solid #5a3854;
-      color: var(--text-main);
-      padding: 8px 12px;
-      font-family: var(--font-display);
-      font-size: 0.8rem;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 3px;
-      transition: all 0.2s;
-    }
-    .btn-foyer-nav:hover {
-      border-color: var(--glow-cyan);
-      background: #251633;
-      color: #fff;
-    }
-    .btn-foyer-nav.nav-locked {
-      border-color: #3d2a38;
-      color: #665564;
-      cursor: not-allowed;
-    }
-
-    .top-return-btn {
-      position: absolute;
-      top: 18px;
-      left: 20px;
-      background: rgba(12, 9, 16, 0.88);
-      border: 1.5px solid #ff9ebb;
-      color: #ffccd4;
-      padding: 8px 16px;
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-      cursor: pointer;
-      border-radius: 4px;
-      backdrop-filter: blur(6px);
-      z-index: 15;
-      transition: all 0.2s;
-    }
-    .top-return-btn:hover {
-      background: #4a2842;
-      color: #fff;
-      border-color: var(--glow-cyan);
-    }
-
-    /* HOTSPOTS SALA 1 */
-    .study-hotspot-bench {
-      position: absolute;
-      top: 66%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(10, 7, 14, 0.88);
-      border: 2px dashed var(--amber);
-      color: var(--amber);
-      padding: 10px 20px;
-      font-family: var(--font-display);
-      font-size: 0.85rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      box-shadow: 0 0 25px rgba(252, 163, 17, 0.4);
-      z-index: 10;
-      backdrop-filter: blur(4px);
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .study-hotspot-bench:hover {
-      background: var(--amber);
-      color: #000;
-      border-style: solid;
-      box-shadow: 0 0 35px rgba(252, 163, 17, 0.9);
-      transform: translate(-50%, -50%) scale(1.06);
-    }
-
-    .study-hotspot-safe {
-      position: absolute;
-      top: 36%;
-      left: 63.5%;
-      transform: translate(-50%, -50%);
-      background: rgba(10, 7, 14, 0.88);
-      border: 2px dashed var(--glow-cyan);
-      color: var(--glow-cyan);
-      padding: 8px 16px;
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
-      z-index: 10;
-      backdrop-filter: blur(4px);
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .study-hotspot-safe:hover {
-      background: var(--glow-cyan);
-      color: #000;
-      border-style: solid;
-      box-shadow: 0 0 30px rgba(0, 229, 255, 0.9);
-      transform: translate(-50%, -50%) scale(1.08);
-    }
-
-    /* HOTSPOTS SALA 2 */
-    .crypt-hotspot-altar {
-      position: absolute;
-      top: 56%;
-      left: 61%;
-      transform: translate(-50%, -50%);
-      background: rgba(10, 7, 14, 0.88);
-      border: 2px dashed var(--glow-cyan);
-      color: var(--glow-cyan);
-      padding: 9px 18px;
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
-      z-index: 10;
-      backdrop-filter: blur(4px);
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .crypt-hotspot-altar:hover {
-      background: var(--glow-cyan);
-      color: #000;
-      border-style: solid;
-      box-shadow: 0 0 30px rgba(0, 229, 255, 0.9);
-      transform: translate(-50%, -50%) scale(1.06);
-    }
-
-    .crypt-hotspot-tombs {
-      position: absolute;
-      top: 72%;
-      left: 23%;
-      transform: translate(-50%, -50%);
-      background: rgba(10, 7, 14, 0.88);
-      border: 2px dashed var(--amber);
-      color: var(--amber);
-      padding: 9px 18px;
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      box-shadow: 0 0 20px rgba(252, 163, 17, 0.4);
-      z-index: 10;
-      backdrop-filter: blur(4px);
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .crypt-hotspot-tombs:hover {
-      background: var(--amber);
-      color: #000;
-      border-style: solid;
-      box-shadow: 0 0 30px rgba(252, 163, 17, 0.9);
-      transform: translate(-50%, -50%) scale(1.06);
-    }
-
-    /* HOTSPOTS SALA 3 */
-    .cold-hotspot-grid {
-      position: absolute;
-      top: 75%;
-      left: 56%;
-      transform: translate(-50%, -50%);
-      background: rgba(10, 7, 14, 0.88);
-      border: 2px dashed var(--amber);
-      color: var(--amber);
-      padding: 10px 20px;
-      font-family: var(--font-display);
-      font-size: 0.85rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      box-shadow: 0 0 25px rgba(252, 163, 17, 0.4);
-      z-index: 10;
-      backdrop-filter: blur(4px);
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .cold-hotspot-grid:hover {
-      background: var(--amber);
-      color: #000;
-      border-style: solid;
-      box-shadow: 0 0 35px rgba(252, 163, 17, 0.9);
-      transform: translate(-50%, -50%) scale(1.06);
-    }
-
-    .cold-hotspot-valves {
-      position: absolute;
-      top: 40%;
-      left: 30%;
-      transform: translate(-50%, -50%);
-      background: rgba(10, 7, 14, 0.88);
-      border: 2px dashed var(--glow-cyan);
-      color: var(--glow-cyan);
-      padding: 8px 16px;
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
-      z-index: 10;
-      backdrop-filter: blur(4px);
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .cold-hotspot-valves:hover {
-      background: var(--glow-cyan);
-      color: #000;
-      border-style: solid;
-      box-shadow: 0 0 30px rgba(0, 229, 255, 0.9);
-      transform: translate(-50%, -50%) scale(1.08);
-    }
-
-    /* HOTSPOTS SALA 4 */
-    .vault-hotspot-term {
-      position: absolute;
-      top: 76%;
-      left: 49%;
-      transform: translate(-50%, -50%);
-      background: rgba(10, 7, 14, 0.92);
-      border: 2px dashed var(--bright-red);
-      color: #ffCCD4;
-      padding: 11px 22px;
-      font-family: var(--font-display);
-      font-size: 0.88rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      box-shadow: 0 0 30px rgba(255, 34, 51, 0.5);
-      z-index: 10;
-      backdrop-filter: blur(4px);
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .vault-hotspot-term:hover {
-      background: var(--bright-red);
-      color: #fff;
-      border-style: solid;
-      box-shadow: 0 0 40px rgba(255, 34, 51, 0.9);
-      transform: translate(-50%, -50%) scale(1.06);
-    }
-
-    .vault-hotspot-matrix {
-      position: absolute;
-      top: 36%;
-      left: 38%;
-      transform: translate(-50%, -50%);
-      background: rgba(10, 7, 14, 0.88);
-      border: 2px dashed var(--amber);
-      color: var(--amber);
-      padding: 8px 16px;
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      box-shadow: 0 0 20px rgba(252, 163, 17, 0.4);
-      z-index: 10;
-      backdrop-filter: blur(4px);
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .vault-hotspot-matrix:hover {
-      background: var(--amber);
-      color: #000;
-      border-style: solid;
-      box-shadow: 0 0 30px rgba(252, 163, 17, 0.9);
-      transform: translate(-50%, -50%) scale(1.08);
-    }
-
-    .study-modal-overlay {
-      display: none;
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      z-index: 30;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .study-modal-overlay.active {
-      display: flex;
-    }
-
-    .flasks-inspection-card {
-      background: #0d0914;
-      border: 2px solid #5a3854;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 860px;
-      padding: 24px 30px;
-      box-shadow: 0 10px 50px rgba(0,0,0,0.95);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      position: relative;
-    }
-
-    .flasks-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #331d2e;
-      padding-bottom: 10px;
-    }
-
-    .flasks-modal-title {
-      color: var(--amber);
-      font-family: var(--font-display);
-      font-size: 1rem;
-      font-weight: bold;
-      letter-spacing: 1.5px;
-    }
-
-    .btn-close-modal {
-      background: #2b0b14;
-      border: 1px solid var(--bright-red);
-      color: var(--bright-red);
-      font-family: var(--font-display);
-      padding: 4px 12px;
-      font-size: 0.85rem;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 3px;
-    }
-    .btn-close-modal:hover {
-      background: var(--bright-red);
-      color: #fff;
-    }
-
-    .flasks-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-top: 6px;
-    }
-
-    .flask-unit {
-      background: #140d1c;
-      border: 1.5px solid #3d2338;
-      border-radius: 6px;
-      padding: 16px 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 10px;
-      transition: all 0.2s;
-    }
-    .flask-unit:hover {
-      border-color: var(--glow-cyan);
-      box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
-    }
-
-    .flask-badge-num {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #fff;
-      background: #251226;
-      border: 1px solid #5a3854;
-      padding: 2px 14px;
-      border-radius: 4px;
-      letter-spacing: 1px;
-    }
-
-    .flask-visual-icon {
-      font-size: 2.8rem;
-      line-height: 1;
-    }
-
-    .flask-select-label {
-      width: 100%;
-      background: #050308;
-      border: 1px solid #5a3854;
-      color: var(--text-main);
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: bold;
-      padding: 6px 8px;
-      border-radius: 4px;
-      text-align: center;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .flasks-footer-hint {
-      font-size: 0.85rem;
-      color: #bbb;
-      background: #120b18;
-      border-left: 3px solid var(--amber);
-      padding: 8px 14px;
-      border-radius: 3px;
-      line-height: 1.5;
-    }
-
-    .generic-dialog-card {
-      background: #0f0a17;
-      border: 2px solid #5a3350;
-      border-radius: 8px;
-      padding: 26px 36px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      width: 90%;
-      max-width: 540px;
-      box-shadow: 0 10px 50px rgba(0,0,0,0.95);
-      position: relative;
-    }
-  </style>
+  /* VICTORY OVERLAY FOR ACT 1 */
+  .modal-win {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+  }
+  .modal-win.active { display: flex; }
+  .modal-win-box {
+    background: #14110e;
+    border: 2px solid #27ae60;
+    border-radius: 8px;
+    padding: 30px;
+    max-width: 580px;
+  }
+  .modal-win-box h2 {
+    color: #2ecc71;
+    font-size: 24px;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+  }
+  .modal-win-box p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #d8c8b4;
+    margin-bottom: 20px;
+  }
+  .btn-next-act {
+    background: var(--accent-green);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .btn-next-act:hover { background: #2ecc71; }
+</style>
 </head>
 <body>
 
-  <div class="terminal-header">
-    <div class="header-left">
-      <div class="rec-indicator">
-        <div class="rec-dot"></div>
-        <span id="headerFeedLabel">FEED: DESK TERMINAL // STANDBY</span>
-      </div>
-      <div>OCT 31, 1984</div>
-    </div>
-
-    <div class="timer-hud">
-      <span class="timer-label">MISSION TIME:</span>
-      <div class="timer-digits" id="timerDisplay">45:00</div>
-      <button class="btn-timer-ctrl" id="btnTimerToggle" onclick="toggleTimer()">PAUSE</button>
-      <button class="btn-timer-ctrl" onclick="addMinutes(5)">+5M</button>
-      <button class="btn-timer-ctrl" onclick="toggleAudio()" id="audioBtn" style="margin-left: 6px;">AUDIO [OFF]</button>
+<div class="game-container">
+  <!-- HUD Top -->
+  <div class="hud-top">
+    <div class="hud-title">CAMP NIGHTWING // OPERATIONS DESK 1978</div>
+    <div class="hud-status">
+      <span style="color:var(--muted)">SECTOR: 1</span>
+      <div class="rec-badge"><span class="rec-dot"></span> LIVE LINK</div>
     </div>
   </div>
 
-  <div class="main-stage">
-
-    <!-- VIEW 1: INTRO -->
-    <div class="view-screen active" id="view-intro">
-      <img src="https://i.imgur.com/6REadLw.jpeg" alt="Surveillance Desk" class="full-bg-image" crossorigin="anonymous">
-
-      <div class="intro-overlay">
-        <div class="intro-title">
-          <span>◈</span> MISSION DIRECTIVE // CASE: BLACKWOOD MANOR (1984)
-        </div>
-        <div class="intro-text">
-          On <strong style="color: #fff;">October 31, 1984</strong>, the Vance Expedition vanished inside Blackwood Manor. You are remote specialists guiding the tactical terminal:
-          <ul style="margin: 8px 0 8px 20px; line-height: 1.6;">
-            <li><span class="role-badge badge-a">Player A: The Archivist</span> holds field logs, autopsy notes, and exclusion rules.</li>
-            <li><span class="role-badge badge-b">Player B: The Surveyor</span> holds architectural relief codices, symbols, and sensor grids.</li>
-          </ul>
-          <span style="color: #ff9ebb; font-size: 0.88rem;">⚠️ <strong>PROGRESSIVE PROTOCOL:</strong> Each sector unlock requires the previous room's deactivation. Speak exclusively in English!</span>
-        </div>
-        <button class="btn-start-mission" onclick="startInvestigation()">START INVESTIGATION</button>
-      </div>
-    </div>
-
-    <!-- VIEW 2: CAM-01 GATES -->
-    <div class="view-screen" id="view-gate">
-      <img src="https://i.imgur.com/9x55DRT.png" alt="Iron Gates Feed" class="full-bg-image" crossorigin="anonymous">
-
-      <div class="terminal-box">
-        <div class="terminal-title">◈ PERIMETER OVERRIDE TERMINAL ◈</div>
-        <div class="input-row">
-          <input type="text" id="gateInput" class="cipher-input" maxlength="8" placeholder="CODE" autocomplete="off" spellcheck="false" onkeydown="checkKey(event, submitGateCode)">
-          <button class="btn-unlock" onclick="submitGateCode()">UNLOCK</button>
-        </div>
-        <div class="status-msg" id="gateStatusMsg">ENTER 4-LETTER CIPHER KEY</div>
-      </div>
-    </div>
-
-    <!-- VIEW 3: CAM-02 MAIN FOYER (CENTRAL HUB COM LIBERAÇÃO PROGRESSIVA) -->
-    <div class="view-screen" id="view-foyer">
-      <img src="https://i.imgur.com/FpPHeG1.jpeg" alt="Main Foyer Feed" class="full-bg-image" crossorigin="anonymous">
-
-      <!-- 1. STUDY: Desbloqueada assim que passa o Portão -->
-      <button class="foyer-hotspot" id="spot-study" onclick="tryEnterRoom('room-1', 'CAM-03 [ALCHEMIST STUDY]', 1)">
-        <span>🚪</span> <span id="label-spot-study">[CAM-03] STUDY</span>
-      </button>
-
-      <!-- 2. CRYPT: Trancada até terminar o Study -->
-      <button class="foyer-hotspot hotspot-locked" id="spot-crypt" onclick="tryEnterRoom('room-2', 'CAM-04 [THE CRYPT]', 2)">
-        <span>🔒</span> <span id="label-spot-crypt">[CAM-04] CRYPT [LOCKED]</span>
-      </button>
-
-      <!-- 3. COLD STORAGE: Trancada até terminar a Crypt -->
-      <button class="foyer-hotspot hotspot-locked" id="spot-cold" onclick="tryEnterRoom('room-3', 'CAM-05 [COLD STORAGE]', 3)">
-        <span>🔒</span> <span id="label-spot-cold">[CAM-05] STORAGE [LOCKED]</span>
-      </button>
-
-      <!-- 4. FINAL VAULT: Trancada até terminar o Cold Storage -->
-      <button class="foyer-hotspot hotspot-locked" id="spot-terminal" onclick="tryEnterRoom('room-final', 'CAM-06 [THE FINAL VAULT]', 4)">
-        <span>🔒</span> <span id="label-spot-vault">[CAM-06] VAULT [SEALED]</span>
-      </button>
-
-      <div class="foyer-bottom-bar">
-        <div class="foyer-title">◈ PROGRESSIVE HUB // SECTOR SEQUENCE:</div>
-        <div class="foyer-buttons">
-          <button class="btn-foyer-nav" id="nav-btn-1" onclick="tryEnterRoom('room-1', 'CAM-03 [ALCHEMIST STUDY]', 1)">
-            <span>1. Study</span> <span id="badge-nav-study" style="color: var(--amber);">[ACTIVE]</span>
-          </button>
-          <button class="btn-foyer-nav nav-locked" id="nav-btn-2" onclick="tryEnterRoom('room-2', 'CAM-04 [THE CRYPT]', 2)">
-            <span>2. Crypt</span> <span id="badge-nav-crypt" style="color: #777;">[LOCKED]</span>
-          </button>
-          <button class="btn-foyer-nav nav-locked" id="nav-btn-3" onclick="tryEnterRoom('room-3', 'CAM-05 [COLD STORAGE]', 3)">
-            <span>3. Storage</span> <span id="badge-nav-cold" style="color: #777;">[LOCKED]</span>
-          </button>
-          <button class="btn-foyer-nav nav-locked" id="nav-btn-4" onclick="tryEnterRoom('room-final', 'CAM-06 [THE FINAL VAULT]', 4)">
-            <span>4. Vault</span> <span id="badge-nav-vault" style="color: #777;">[SEALED]</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW 4: CAM-03 THE ALCHEMIST STUDY -->
-    <div class="view-screen" id="view-room-1">
-      <img src="https://i.imgur.com/XPpxP8r.jpeg" alt="Alchemist Study Feed" class="full-bg-image" crossorigin="anonymous">
-
-      <button class="top-return-btn" onclick="returnToFoyer()">◀ RETURN TO MAIN FOYER (CAM-02)</button>
-
-      <button class="study-hotspot-bench" onclick="openFlasksModal()">
-        <span>⚗️</span> INSPECT APOTHECARY WORKBENCH
-      </button>
-
-      <button class="study-hotspot-safe" onclick="openSafeModal()">
-        <span>🔒</span> [WALL SAFE]
-      </button>
-
-      <div class="study-modal-overlay" id="flasksModal">
-        <div class="flasks-inspection-card">
-          <div class="flasks-modal-header">
-            <div class="flasks-modal-title">◈ TACTICAL ZOOM: APOTHECARY REAGENTS (SECTOR 01)</div>
-            <button class="btn-close-modal" onclick="closeFlasksModal()">✕ CLOSE ZOOM</button>
-          </div>
-
-          <div class="flasks-grid">
-            <div class="flask-unit">
-              <div class="flask-badge-num">FLASK I</div>
-              <div class="flask-visual-icon" style="color: #2ecc71;">🧪</div>
-              <select class="flask-select-label" id="label-flask-1" onchange="checkFlaskSelection()">
-                <option value="">[ASSIGN ELEMENT]</option>
-                <option value="ACID">ACID (Emerald)</option>
-                <option value="SULF">SULF (Yellow)</option>
-                <option value="LEAD">LEAD (Dark Gray)</option>
-                <option value="MERC">MERC (Silver)</option>
-              </select>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">FLASK II</div>
-              <div class="flask-visual-icon" style="color: #f1c40f;">⚗️</div>
-              <select class="flask-select-label" id="label-flask-2" onchange="checkFlaskSelection()">
-                <option value="">[ASSIGN ELEMENT]</option>
-                <option value="ACID">ACID (Emerald)</option>
-                <option value="SULF">SULF (Yellow)</option>
-                <option value="LEAD">LEAD (Dark Gray)</option>
-                <option value="MERC">MERC (Silver)</option>
-              </select>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">FLASK III</div>
-              <div class="flask-visual-icon" style="color: #95a5a6;">🏺</div>
-              <select class="flask-select-label" id="label-flask-3" onchange="checkFlaskSelection()">
-                <option value="">[ASSIGN ELEMENT]</option>
-                <option value="ACID">ACID (Emerald)</option>
-                <option value="SULF">SULF (Yellow)</option>
-                <option value="LEAD">LEAD (Dark Gray)</option>
-                <option value="MERC">MERC (Silver)</option>
-              </select>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">FLASK IV</div>
-              <div class="flask-visual-icon" style="color: #00e5ff;">🧪</div>
-              <select class="flask-select-label" id="label-flask-4" onchange="checkFlaskSelection()">
-                <option value="">[ASSIGN ELEMENT]</option>
-                <option value="ACID">ACID (Emerald)</option>
-                <option value="SULF">SULF (Yellow)</option>
-                <option value="LEAD">LEAD (Dark Gray)</option>
-                <option value="MERC">MERC (Silver)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="flasks-footer-hint" id="flasksFeedback">
-            🗣️ <strong>ORAL INQUIRY:</strong> Ask the students to cross-reference Student A's characteristics with Student B's labels. Select each element as they communicate in English!
-          </div>
-        </div>
-      </div>
-
-      <div class="study-modal-overlay" id="safeModal">
-        <div class="generic-dialog-card">
-          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-            <div class="terminal-title">◈ LABORATORY WALL SAFE OVERRIDE ◈</div>
-            <button class="btn-close-modal" onclick="closeSafeModal()">✕</button>
-          </div>
-
-          <p style="font-size: 0.88rem; color: #ccc; text-align: center;">
-            Enter the isolated key reagent identified from the alchemy workbench:
-          </p>
-
-          <div class="input-row">
-            <input type="text" id="studyInput" class="cipher-input" maxlength="8" placeholder="KEY" autocomplete="off" spellcheck="false" onkeydown="checkKey(event, submitStudyCode)">
-            <button class="btn-unlock" onclick="submitStudyCode()">DISENGAGE</button>
-          </div>
-          <div class="status-msg" id="studyStatusMsg">AWAITING 4-LETTER REAGENT ELEMENT</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- VIEW 5: CAM-04 THE CRYPT OF SIGILS -->
-    <div class="view-screen" id="view-room-2">
-      <img src="https://i.imgur.com/EXfM1Ca.jpeg" alt="Crypt Feed" class="full-bg-image" crossorigin="anonymous">
-
-      <button class="top-return-btn" onclick="returnToFoyer()">◀ RETURN TO MAIN FOYER (CAM-02)</button>
-
-      <button class="crypt-hotspot-tombs" onclick="openTombsModal()">
-        <span>⚰️</span> SURVEY BURIAL SARCOPHAGI
-      </button>
-
-      <button class="crypt-hotspot-altar" onclick="openAltarModal()">
-        <span>🗝️</span> [CRYPT ALTAR SLAB]
-      </button>
-
-      <div class="study-modal-overlay" id="tombsModal">
-        <div class="flasks-inspection-card" style="max-width: 780px;">
-          <div class="flasks-modal-header">
-            <div class="flasks-modal-title">◈ TACTICAL ZOOM: SUBTERRANEAN SARCOPHAGI (SECTOR 02)</div>
-            <button class="btn-close-modal" onclick="closeTombsModal()">✕ CLOSE ZOOM</button>
-          </div>
-
-          <div class="flasks-grid" style="grid-template-columns: repeat(3, 1fr);">
-            <div class="flask-unit">
-              <div class="flask-badge-num">TOMB I (West)</div>
-              <div class="flask-visual-icon" style="color: #ff9ebb;">🐍</div>
-              <select class="flask-select-label" id="label-tomb-1" onchange="checkTombSelection()">
-                <option value="">[ASSIGN SEAL]</option>
-                <option value="FANG">FANG (Serpens)</option>
-                <option value="VOID">VOID (Virgo)</option>
-                <option value="TOMB">TOMB (Miles Invicto)</option>
-              </select>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">TOMB II (Center)</div>
-              <div class="flask-visual-icon" style="color: #fca311;">🛡️</div>
-              <select class="flask-select-label" id="label-tomb-2" onchange="checkTombSelection()">
-                <option value="">[ASSIGN SEAL]</option>
-                <option value="FANG">FANG (Serpens)</option>
-                <option value="VOID">VOID (Virgo)</option>
-                <option value="TOMB">TOMB (Miles Invicto)</option>
-              </select>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">TOMB III (East)</div>
-              <div class="flask-visual-icon" style="color: #00e5ff;">🪽</div>
-              <select class="flask-select-label" id="label-tomb-3" onchange="checkTombSelection()">
-                <option value="">[ASSIGN SEAL]</option>
-                <option value="FANG">FANG (Serpens)</option>
-                <option value="VOID">VOID (Virgo)</option>
-                <option value="TOMB">TOMB (Miles Invicto)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="flasks-footer-hint" id="tombsFeedback">
-            🗣️ <strong>INVERTED PROTOCOL:</strong> Student B reads the ancient litany aloud. Student A cross-references the pencil rubbings in her dossier. Map each burial seal!
-          </div>
-        </div>
-      </div>
-
-      <div class="study-modal-overlay" id="altarModal">
-        <div class="generic-dialog-card">
-          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-            <div class="terminal-title">◈ CRYPT ALTAR SEAL OVERRIDE ◈</div>
-            <button class="btn-close-modal" onclick="closeAltarModal()">✕</button>
-          </div>
-
-          <p style="font-size: 0.88rem; color: #ccc; text-align: center;">
-            Enter the 4-letter password carved beneath the Undying Knight's heraldry:
-          </p>
-
-          <div class="input-row">
-            <input type="text" id="cryptInput" class="cipher-input" maxlength="8" placeholder="SEAL" autocomplete="off" spellcheck="false" onkeydown="checkKey(event, submitCryptCode)">
-            <button class="btn-unlock" onclick="submitCryptCode()">UNSEAL</button>
-          </div>
-          <div class="status-msg" id="cryptStatusMsg">ENTER 4-LETTER SEPULCHRAL KEY</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- VIEW 6: CAM-05 THE COLD STORAGE -->
-    <div class="view-screen" id="view-room-3">
-      <img src="https://i.imgur.com/xh2xhSN.jpeg" alt="Cold Storage Feed" class="full-bg-image" crossorigin="anonymous">
-
-      <button class="top-return-btn" onclick="returnToFoyer()">◀ RETURN TO MAIN FOYER (CAM-02)</button>
-
-      <button class="cold-hotspot-grid" onclick="openValvesModal()">
-        <span>⚙️</span> SURVEY COMPRESSOR VALVES
-      </button>
-
-      <button class="cold-hotspot-valves" onclick="openBypassModal()">
-        <span>⚡</span> [EMERGENCY OVERRIDE PANEL]
-      </button>
-
-      <div class="study-modal-overlay" id="valvesModal">
-        <div class="flasks-inspection-card" style="max-width: 780px;">
-          <div class="flasks-modal-header">
-            <div class="flasks-modal-title">◈ TACTICAL ZOOM: COMPRESSOR VALVES (SECTOR 03)</div>
-            <button class="btn-close-modal" onclick="closeValvesModal()">✕ CLOSE ZOOM</button>
-          </div>
-
-          <div class="flasks-grid" style="grid-template-columns: repeat(3, 1fr);">
-            <div class="flask-unit">
-              <div class="flask-badge-num">VALVE I (Left)</div>
-              <div class="flask-visual-icon" style="color: #f1c40f;">♨️</div>
-              <select class="flask-select-label" id="label-valve-1" onchange="checkValveSelection()">
-                <option value="">[ASSIGN PRESSURE STATUS]</option>
-                <option value="WARM">WARM (Ruptured Conduit)</option>
-                <option value="WIND">WIND (Broken Coil)</option>
-                <option value="COLD">COLD (Active Snowflake)</option>
-              </select>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">VALVE II (Center)</div>
-              <div class="flask-visual-icon" style="color: #95a5a6;">💨</div>
-              <select class="flask-select-label" id="label-valve-2" onchange="checkValveSelection()">
-                <option value="">[ASSIGN PRESSURE STATUS]</option>
-                <option value="WARM">WARM (Ruptured Conduit)</option>
-                <option value="WIND">WIND (Broken Coil)</option>
-                <option value="COLD">COLD (Active Snowflake)</option>
-              </select>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">VALVE III (Right)</div>
-              <div class="flask-visual-icon" style="color: #3498db;">❄️</div>
-              <select class="flask-select-label" id="label-valve-3" onchange="checkValveSelection()">
-                <option value="">[ASSIGN PRESSURE STATUS]</option>
-                <option value="WARM">WARM (Ruptured Conduit)</option>
-                <option value="WIND">WIND (Broken Coil)</option>
-                <option value="COLD">COLD (Active Snowflake)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="flasks-footer-hint" id="valvesFeedback">
-            🗣️ <strong>EXCLUSION PROTOCOL:</strong> Student A reads the isolation rules. Student B cross-references the blueprints in her file. Map each compressor status!
-          </div>
-        </div>
-      </div>
-
-      <div class="study-modal-overlay" id="bypassModal">
-        <div class="generic-dialog-card">
-          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-            <div class="terminal-title">◈ EMERGENCY BYPASS SUB-ZERO OVERRIDE ◈</div>
-            <button class="btn-close-modal" onclick="closeBypassModal()">✕</button>
-          </div>
-
-          <p style="font-size: 0.88rem; color: #ccc; text-align: center;">
-            Enter the 4-letter passkey of the only active/functional bypass route identified:
-          </p>
-
-          <div class="input-row">
-            <input type="text" id="coldInput" class="cipher-input" maxlength="8" placeholder="BYPASS" autocomplete="off" spellcheck="false" onkeydown="checkKey(event, submitColdCode)">
-            <button class="btn-unlock" onclick="submitColdCode()">BYPASS</button>
-          </div>
-          <div class="status-msg" id="coldStatusMsg">ENTER 4-LETTER BYPASS ROUTE</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- VIEW 7: CAM-06 THE FINAL VAULT -->
-    <div class="view-screen" id="view-room-final">
-      <img src="https://i.imgur.com/zj6QdOq.jpeg" alt="Vault Room Feed" class="full-bg-image" crossorigin="anonymous">
-
-      <button class="top-return-btn" onclick="returnToFoyer()">◀ RETURN TO MAIN FOYER (CAM-02)</button>
-
-      <button class="vault-hotspot-matrix" onclick="openMatrixModal()">
-        <span>📋</span> VERIFY SECTOR PASSCODES
-      </button>
-
-      <button class="vault-hotspot-term" onclick="openFinalModal()">
-        <span>⚡</span> [ENTER FINAL OVERRIDE CODE]
-      </button>
-
-      <div class="study-modal-overlay" id="matrixModal">
-        <div class="flasks-inspection-card" style="max-width: 720px;">
-          <div class="flasks-modal-header">
-            <div class="flasks-modal-title">◈ SECTOR ARCHIVE STATUS: 4 ACTIVE OVERRIDES</div>
-            <button class="btn-close-modal" onclick="closeMatrixModal()">✕ CLOSE</button>
-          </div>
-
-          <div class="flasks-grid" style="grid-template-columns: repeat(2, 1fr); gap: 14px;">
-            <div class="flask-unit">
-              <div class="flask-badge-num">0. THE GATES</div>
-              <div style="font-family: var(--font-display); font-size: 1.2rem; color: var(--glow-green); font-weight: bold; letter-spacing: 2px;">
-                [W] [O] [L] [F]
-              </div>
-              <div style="font-size: 0.78rem; color: #888;">PERIMETER CHAIN CLEARED</div>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">1. THE STUDY</div>
-              <div style="font-family: var(--font-display); font-size: 1.2rem; color: var(--glow-green); font-weight: bold; letter-spacing: 2px;">
-                [L] [E] [A] [D]
-              </div>
-              <div style="font-size: 0.78rem; color: #888;">REAGENT SAFE CLEARED</div>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">2. THE CRYPT</div>
-              <div style="font-family: var(--font-display); font-size: 1.2rem; color: var(--glow-green); font-weight: bold; letter-spacing: 2px;">
-                [T] [O] [M] [B]
-              </div>
-              <div style="font-size: 0.78rem; color: #888;">SEPULCHRE SLAB UNSEALED</div>
-            </div>
-
-            <div class="flask-unit">
-              <div class="flask-badge-num">3. COLD STORAGE</div>
-              <div style="font-family: var(--font-display); font-size: 1.2rem; color: var(--glow-green); font-weight: bold; letter-spacing: 2px;">
-                [C] [O] [L] [D]
-              </div>
-              <div style="font-size: 0.78rem; color: #888;">SUB-ZERO BYPASS ACTIVE</div>
-            </div>
-          </div>
-
-          <div class="flasks-footer-hint">
-            🗣️ <strong>EXTRACTION COOPERATION:</strong> Student A has the 4 extraction coordinate rules. Student B has the color wire diagram. They must connect the letters in English to form the final escape word!
-          </div>
-        </div>
-      </div>
-
-      <div class="study-modal-overlay" id="finalModal">
-        <div class="generic-dialog-card">
-          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-            <div class="terminal-title">◈ MASTER EXTRACTION OVERRIDE ◈</div>
-            <button class="btn-close-modal" onclick="closeFinalModal()">✕</button>
-          </div>
-
-          <p style="font-size: 0.88rem; color: #ccc; text-align: center;">
-            Enter the 4-letter extraction word deduced from the four connected sector passwords:
-          </p>
-
-          <div class="input-row">
-            <input type="text" id="finalInput" class="cipher-input" maxlength="8" placeholder="OVERRIDE" autocomplete="off" spellcheck="false" onkeydown="checkKey(event, submitFinalCode)">
-            <button class="btn-unlock" onclick="submitFinalCode()">ESCAPE</button>
-          </div>
-          <div class="status-msg" id="finalStatusMsg">ENTER 4-LETTER ESCAPE PASSWORD</div>
-        </div>
-      </div>
-
-    </div>
-
+  <!-- Route Tracker -->
+  <div class="journey-bar">
+    <div class="track-step active" id="trk-1">● 1. CAMPGROUNDS</div>
+    <div class="track-step" id="trk-2">○ 2. INFIRMARY</div>
+    <div class="track-step" id="trk-3">○ 3. GENERATOR</div>
+    <div class="track-step" id="trk-4">○ 4. NORTH GATE</div>
   </div>
 
-  <script>
-    const targetGate = "WOLF";
-    const targetStudy = "LEAD";
-    const targetCrypt = "TOMB";
-    const targetCold = "COLD";
-    const targetFinal = "BOLD";
+  <!-- Inventory Strip -->
+  <div class="inventory-bar">
+    <span>🎒 INVENTORY:</span>
+    <span class="inv-tag" id="inv-light">🔦 Flashlight (Low)</span>
+    <span class="inv-tag" id="inv-map">🗺️ Camp Map 1978</span>
+    <span class="inv-tag" id="inv-radio" style="display:none; color:#2ecc71; border-color:#2ecc71;">📻 Police Two-Way Radio</span>
+  </div>
 
-    // ESTADO DE PROGRESSÃO SEQUENCIAL
-    const unlockedProgress = {
-      study: true,      // Disponível após os portões
-      crypt: false,     // Requer Study
-      storage: false,   // Requer Crypt
-      vault: false      // Requer Storage
-    };
+  <!-- SCREEN 1: BRIEFING -->
+  <div class="screen-briefing" id="scr-briefing">
+    <div class="stamp">Incident Dossier #78</div>
+    <h1 class="title-hero">CAMP NIGHTWING</h1>
+    <div class="date-hero">SHADYSIDE, JULY 19, 1978 — MIDNIGHT CRISIS</div>
 
-    let audioCtx = null;
-    let audioOn = false;
+    <div class="briefing-box">
+      <p><strong>🚨 THE EMERGENCY:</strong> At 23:30, the camp sirens were triggered. The main electrical line died and telephone wires were cut with an axe. A masked killer is roaming the campsite.</p>
+      <br>
+      <p><strong>👥 COOPERATIVE PROTOCOL:</strong> The student (Counselor) has the field map and survival toolkit on their mobile phone. The teacher (Radio Base) has access to the confidential police archives.</p>
+      <br>
+      <p><strong>🎯 OBJECTIVE:</strong> The student must guide the movement via radio in English. Explore the campsite, find the Sheriff's hidden emergency radio, and navigate through the camp sectors to escape before midnight!</p>
+    </div>
 
-    let totalSeconds = 45 * 60;
-    let timerRunning = false;
-    let timerInterval = null;
+    <button class="btn-start" onclick="initGame()">Initiate Exploration Link</button>
+  </div>
 
-    function initAudio() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+  <!-- SCREEN 2: POINT-AND-CLICK VIEWPORT -->
+  <div class="screen-game" id="scr-game">
+    <div class="viewport" id="viewport">
+      <!-- Scene Image -->
+      <img src="https://i.imgur.com/QtDiwVn.jpeg" alt="Camp Fork" class="scene-img" id="scene-img">
+
+      <!-- SCENE 1 HOTSPOTS: FORK IN THE WOODS -->
+      <div id="hotspots-fork">
+        <!-- Lake Path (Left) -->
+        <div class="hotspot" style="top: 36%; left: 8%; width: 22%; height: 42%;" onclick="clickPath('lake')">
+          <span class="hotspot-tag">➔ LAKE AREA (Cabins 1 & 2)</span>
+        </div>
+        <!-- Deep Woods (Center) -->
+        <div class="hotspot" style="top: 34%; left: 45%; width: 18%; height: 40%;" onclick="clickPath('woods')">
+          <span class="hotspot-tag">➔ DEEP WOODS (Cabins 3 & 4)</span>
+        </div>
+        <!-- Campfire Area (Right) -->
+        <div class="hotspot" style="top: 38%; left: 78%; width: 20%; height: 44%;" onclick="clickPath('campfire')">
+          <span class="hotspot-tag">➔ CAMPFIRE AREA (Cabins 5 & 6)</span>
+        </div>
+      </div>
+
+      <!-- SCENE 2 HOTSPOTS: CAMPFIRE CABINS (5 & 6) -->
+      <div id="hotspots-campfire" style="display:none;">
+        <!-- Cabin 5 Door (Blue door) -->
+        <div class="hotspot" style="top: 38%; left: 37%; width: 10%; height: 26%;" onclick="clickCabin(5)">
+          <span class="hotspot-tag">🚪 CABIN 5 (Blue Door)</span>
+        </div>
+        <!-- Cabin 6 Door (Green door) -->
+        <div class="hotspot" style="top: 36%; left: 70%; width: 11%; height: 32%;" onclick="clickCabin(6)">
+          <span class="hotspot-tag">🚪 CABIN 6 (Green Door)</span>
+        </div>
+      </div>
+
+      <!-- SCENE 3 HOTSPOTS: INSIDE CABIN 6 -->
+      <div id="hotspots-inside" style="display:none;">
+        <!-- Under Bunk Bed (Radio Target) -->
+        <div class="hotspot" style="top: 65%; left: 56%; width: 16%; height: 22%;" onclick="clickRadio()">
+          <span class="hotspot-tag">🔍 INSPECT METAL BOX</span>
+        </div>
+      </div>
+
+      <!-- Toast Notification -->
+      <div class="toast" id="toast-msg"></div>
+    </div>
+
+    <!-- Viewport Footer -->
+    <div class="viewport-footer">
+      <div class="loc-text" id="footer-loc">📍 LOCATION: Crossroad Fork (Camp Nightwing)</div>
+      <div class="feedback-text" id="footer-hint">Student: Guide your partner in English using your map!</div>
+      <button class="btn-back" id="btn-back" onclick="goBackToFork()">⮌ Back to Trail</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIN / ADVANCE MODAL -->
+<div class="modal-win" id="modal-act1-win">
+  <div class="modal-win-box">
+    <h2>📻 POLICE RADIO RECOVERED!</h2>
+    <p>
+      You pulled the heavy metal radio from underneath the wooden bunk! The green power light blinks on, and static clears:
+      <br><br>
+      <em>"Radio base to counselor! Signal is loud and clear! We verified the next checkpoint: head straight to the <strong>Infirmary</strong> to find the master electrical key!"</em>
+    </p>
+    <button class="btn-next-act" onclick="proceedNextAct()">Proceed to Sector 2: The Infirmary ➔</button>
+  </div>
+</div>
+
+<script>
+  let currentScene = "fork";
+
+  // Web Audio Synth for atmospheric clicks/beeps
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playTone(freq, type, dur) {
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur);
+    } catch(e) {}
+  }
+
+  function showToast(msg, dur=2400) {
+    const t = document.getElementById("toast-msg");
+    t.textContent = msg;
+    t.style.display = "block";
+    setTimeout(() => { t.style.display = "none"; }, dur);
+  }
+
+  function initGame() {
+    playTone(440, 'sine', 0.2);
+    document.getElementById("scr-briefing").style.display = "none";
+    document.getElementById("scr-game").style.display = "block";
+  }
+
+  // Scene 1: Fork Decisions
+  function clickPath(dest) {
+    if (dest === "lake") {
+      playTone(180, 'sawtooth', 0.25);
+      showToast("⚠️ The sheriff's note says: 'The waters are not safe!' Lake is dangerous!");
+    } else if (dest === "woods") {
+      playTone(180, 'sawtooth', 0.25);
+      showToast("🌲 Witness Tommy reported the sheriff ran away from the woods toward the campfire!");
+    } else if (dest === "campfire") {
+      playTone(520, 'triangle', 0.3);
+      currentScene = "campfire";
+      document.getElementById("scene-img").src = "https://i.imgur.com/zADlRHO.jpeg";
+      document.getElementById("hotspots-fork").style.display = "none";
+      document.getElementById("hotspots-campfire").style.display = "block";
+      document.getElementById("footer-loc").textContent = "📍 LOCATION: Campfire Grounds (Cabins 5 & 6)";
+      document.getElementById("footer-hint").textContent = "Ask your partner which door color is correct!";
+      document.getElementById("btn-back").style.display = "inline-block";
     }
+  }
 
-    function toggleAudio() {
-      initAudio();
-      audioOn = !audioOn;
-      document.getElementById('audioBtn').innerText = audioOn ? "AUDIO [ON]" : "AUDIO [OFF]";
-      document.getElementById('audioBtn').style.color = audioOn ? "#39ff14" : "#ff9ebb";
+  function goBackToFork() {
+    playTone(350, 'sine', 0.15);
+    currentScene = "fork";
+    document.getElementById("scene-img").src = "https://i.imgur.com/QtDiwVn.jpeg";
+    document.getElementById("hotspots-fork").style.display = "block";
+    document.getElementById("hotspots-campfire").style.display = "none";
+    document.getElementById("hotspots-inside").style.display = "none";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: Crossroad Fork (Camp Nightwing)";
+    document.getElementById("footer-hint").textContent = "Student: Guide your partner in English using your map!";
+    document.getElementById("btn-back").style.display = "none";
+  }
+
+  // Scene 2: Cabin Decisions
+  function clickCabin(num) {
+    if (num === 5) {
+      playTone(180, 'square', 0.25);
+      showToast("❌ Alice said: 'Cabin 5 lights are out. Nobody entered that blue door!'");
+    } else if (num === 6) {
+      playTone(600, 'triangle', 0.3);
+      currentScene = "inside";
+      document.getElementById("scene-img").src = "https://i.imgur.com/5gC4yQQ.jpeg";
+      document.getElementById("hotspots-campfire").style.display = "none";
+      document.getElementById("hotspots-inside").style.display = "block";
+      document.getElementById("footer-loc").textContent = "📍 LOCATION: Inside Cabin 6 (Wooden Bunks)";
+      document.getElementById("footer-hint").textContent = "Look around the room! Where did the sheriff hide it?";
     }
-
-    function beep(freq, type='sine', duration=0.15) {
-      if (!audioOn || !audioCtx) return;
-      try {
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        g.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        osc.connect(g);
-        g.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch(e) {}
-    }
-
-    function updateTimerDisplay() {
-      const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-      const s = String(totalSeconds % 60).padStart(2, '0');
-      const display = document.getElementById('timerDisplay');
-      display.innerText = `${m}:${s}`;
-
-      if (totalSeconds <= 300) {
-        display.classList.add('warning');
-      } else {
-        display.classList.remove('warning');
-      }
-    }
-
-    function startTimer() {
-      if (timerRunning) return;
-      timerRunning = true;
-      document.getElementById('btnTimerToggle').innerText = "PAUSE";
-      timerInterval = setInterval(() => {
-        if (totalSeconds > 0) {
-          totalSeconds--;
-          updateTimerDisplay();
-          if (totalSeconds <= 10 && totalSeconds > 0) {
-            beep(200, 'square', 0.1);
-          }
-        } else {
-          clearInterval(timerInterval);
-          timerRunning = false;
-          beep(120, 'sawtooth', 0.8);
-          alert("CRITICAL WARNING: The Blackwood Manor perimeter has sealed completely. Mission Time Expired.");
-        }
-      }, 1000);
-    }
-
-    function toggleTimer() {
-      if (timerRunning) {
-        clearInterval(timerInterval);
-        timerRunning = false;
-        document.getElementById('btnTimerToggle').innerText = "RESUME";
-      } else {
-        startTimer();
-      }
-    }
-
-    function addMinutes(min) {
-      totalSeconds += min * 60;
-      updateTimerDisplay();
-      beep(600, 'triangle', 0.1);
-    }
-
-    function showView(viewId) {
-      document.querySelectorAll('.view-screen').forEach(v => v.classList.remove('active'));
-      const targetView = document.getElementById(viewId);
-      if (targetView) targetView.classList.add('active');
-    }
-
-    function startInvestigation() {
-      initAudio();
-      audioOn = true;
-      document.getElementById('audioBtn').innerText = "AUDIO [ON]";
-      document.getElementById('audioBtn').style.color = "#39ff14";
-      beep(300, 'square', 0.2);
-      setTimeout(() => beep(450, 'square', 0.3), 150);
-
-      startTimer();
-      showView('view-gate');
-      document.getElementById('headerFeedLabel').innerText = "CAM-01 [ENTRANCE PERIMETER]";
-      setTimeout(() => {
-        const input = document.getElementById('gateInput');
-        if (input) input.focus();
-      }, 100);
-    }
-
-    function checkKey(e, callback) {
-      if (e.key === 'Enter') {
-        callback();
-      }
-    }
-
-    /* CONTROLE DE ENTRADA PROGRESSIVA NAS SALAS */
-    function tryEnterRoom(roomId, label, roomNum) {
-      if (roomNum === 1 && !unlockedProgress.study) return blockAccess();
-      if (roomNum === 2 && !unlockedProgress.crypt) return blockAccess("SECTOR 02 LOCKED: Complete The Alchemist Study first!");
-      if (roomNum === 3 && !unlockedProgress.storage) return blockAccess("SECTOR 03 LOCKED: Complete The Crypt of Sigils first!");
-      if (roomNum === 4 && !unlockedProgress.vault) return blockAccess("SECTOR 04 SEALED: Complete Cold Storage bypass first!");
-
-      switchCamera(roomId, label);
-    }
-
-    function blockAccess(msg = "SECURITY LOCKOUT: Sector locked until previous room is cleared.") {
-      beep(150, 'sawtooth', 0.25);
-      alert(msg);
-    }
-
-    /* 0. PORTÃO */
-    function submitGateCode() {
-      const input = document.getElementById('gateInput');
-      const entered = input.value.trim().toUpperCase();
-      const status = document.getElementById('gateStatusMsg');
-
-      if (!entered) return;
-
-      if (entered === targetGate) {
-        beep(440, 'sine', 0.2);
-        setTimeout(() => beep(660, 'sine', 0.4), 180);
-        status.className = "status-msg status-granted";
-        status.innerText = "✓ ACCESS GRANTED: THE HEAVY CHAIN FALLS. ENTERING FOYER...";
-
-        setTimeout(() => {
-          showView('view-foyer');
-          document.getElementById('headerFeedLabel').innerText = "CAM-02 [MAIN FOYER // CENTRAL HUB]";
-          beep(220, 'triangle', 0.4);
-        }, 1600);
-      } else {
-        beep(140, 'sawtooth', 0.35);
-        status.className = "status-msg status-denied";
-        status.innerText = `✗ CODE "${entered}" REJECTED: TUMBLERS REMAIN LOCKED.`;
-        input.value = "";
-        input.focus();
-      }
-    }
-
-    /* 1. STUDY */
-    function openFlasksModal() {
-      beep(700, 'sine', 0.08);
-      document.getElementById('flasksModal').classList.add('active');
-    }
-
-    function closeFlasksModal() {
-      beep(400, 'sine', 0.08);
-      document.getElementById('flasksModal').classList.remove('active');
-    }
-
-    function checkFlaskSelection() {
-      beep(600, 'triangle', 0.06);
-      const f1 = document.getElementById('label-flask-1').value;
-      const f2 = document.getElementById('label-flask-2').value;
-      const f3 = document.getElementById('label-flask-3').value;
-      const f4 = document.getElementById('label-flask-4').value;
-
-      const feedback = document.getElementById('flasksFeedback');
-
-      if (f1 === "ACID" && f2 === "SULF" && f3 === "LEAD" && f4 === "MERC") {
-        feedback.innerHTML = "✓ <strong>CORRECT REAGENT MAPPING!</strong> Vance's notes state: <em>'The key reagent isolated in Flask III is the heavy mineral needed...'</em> Proceed to the Wall Safe!";
-        feedback.style.borderLeftColor = "var(--glow-green)";
-        feedback.style.color = "#d4ffd8";
-        beep(550, 'sine', 0.15);
-        setTimeout(() => beep(750, 'sine', 0.25), 120);
-      }
-    }
-
-    function openSafeModal() {
-      beep(700, 'square', 0.08);
-      document.getElementById('safeModal').classList.add('active');
-      setTimeout(() => {
-        const input = document.getElementById('studyInput');
-        if (input) input.focus();
-      }, 100);
-    }
-
-    function closeSafeModal() {
-      beep(400, 'square', 0.08);
-      document.getElementById('safeModal').classList.remove('active');
-    }
-
-    function submitStudyCode() {
-      const input = document.getElementById('studyInput');
-      const entered = input.value.trim().toUpperCase();
-      const status = document.getElementById('studyStatusMsg');
-
-      if (!entered) return;
-
-      if (entered === targetStudy) {
-        beep(440, 'sine', 0.2);
-        setTimeout(() => beep(660, 'sine', 0.3), 160);
-        setTimeout(() => beep(880, 'sine', 0.4), 320);
-        status.className = "status-msg status-granted";
-        status.innerText = "✓ WALL SAFE DISENGAGED: CIPHER SEAL CLEARED. UNLOCKING THE CRYPT...";
-
-        // LIBERA PROGRESSIVAMENTE A SALA 2 (CRYPT)
-        unlockedProgress.crypt = true;
-        document.getElementById('spot-study').classList.add('hotspot-cleared');
-        document.getElementById('label-spot-study').innerText = "[CAM-03] STUDY ✓ CLEARED";
-        const badge1 = document.getElementById('badge-nav-study');
-        badge1.innerText = "[CLEARED]";
-        badge1.style.color = "var(--glow-green)";
-
-        // Destrancar o botão do Crypt
-        const cryptSpot = document.getElementById('spot-crypt');
-        cryptSpot.classList.remove('hotspot-locked');
-        document.getElementById('label-spot-crypt').innerText = "[CAM-04] CRYPT [UNLOCKED]";
-        const navCrypt = document.getElementById('nav-btn-2');
-        navCrypt.classList.remove('nav-locked');
-        const badge2 = document.getElementById('badge-nav-crypt');
-        badge2.innerText = "[ACTIVE]";
-        badge2.style.color = "var(--amber)";
-
-        setTimeout(() => {
-          closeSafeModal();
-          returnToFoyer();
-        }, 2200);
-      } else {
-        beep(140, 'sawtooth', 0.35);
-        status.className = "status-msg status-denied";
-        status.innerText = `✗ REAGENT "${entered}" REJECTED: LOCK ENGAGED.`;
-        input.value = "";
-        input.focus();
-      }
-    }
-
-    /* 2. CRYPT */
-    function openTombsModal() {
-      beep(700, 'sine', 0.08);
-      document.getElementById('tombsModal').classList.add('active');
-    }
-
-    function closeTombsModal() {
-      beep(400, 'sine', 0.08);
-      document.getElementById('tombsModal').classList.remove('active');
-    }
-
-    function checkTombSelection() {
-      beep(600, 'triangle', 0.06);
-      const t1 = document.getElementById('label-tomb-1').value;
-      const t2 = document.getElementById('label-tomb-2').value;
-      const t3 = document.getElementById('label-tomb-3').value;
-
-      const feedback = document.getElementById('tombsFeedback');
-
-      if (t1 === "FANG" && t2 === "TOMB" && t3 === "VOID") {
-        feedback.innerHTML = "✓ <strong>CORRECT BURIAL ALIGNMENT!</strong> The Litany confirms the Undying Knight rests in Tomb II. Proceed to the Altar Slab!";
-        feedback.style.borderLeftColor = "var(--glow-green)";
-        feedback.style.color = "#d4ffd8";
-        beep(550, 'sine', 0.15);
-        setTimeout(() => beep(750, 'sine', 0.25), 120);
-      }
-    }
-
-    function openAltarModal() {
-      beep(700, 'square', 0.08);
-      document.getElementById('altarModal').classList.add('active');
-      setTimeout(() => {
-        const input = document.getElementById('cryptInput');
-        if (input) input.focus();
-      }, 100);
-    }
-
-    function closeAltarModal() {
-      beep(400, 'square', 0.08);
-      document.getElementById('altarModal').classList.remove('active');
-    }
-
-    function submitCryptCode() {
-      const input = document.getElementById('cryptInput');
-      const entered = input.value.trim().toUpperCase();
-      const status = document.getElementById('cryptStatusMsg');
-
-      if (!entered) return;
-
-      if (entered === targetCrypt) {
-        beep(440, 'sine', 0.2);
-        setTimeout(() => beep(660, 'sine', 0.3), 160);
-        setTimeout(() => beep(880, 'sine', 0.4), 320);
-        status.className = "status-msg status-granted";
-        status.innerText = "✓ CRYPT SLAB UNSEALED: SECOND ARCHIVAL KEY ACQUIRED. UNLOCKING COLD STORAGE...";
-
-        // LIBERA PROGRESSIVAMENTE A SALA 3 (COLD STORAGE)
-        unlockedProgress.storage = true;
-        document.getElementById('spot-crypt').classList.add('hotspot-cleared');
-        document.getElementById('label-spot-crypt').innerText = "[CAM-04] CRYPT ✓ CLEARED";
-        const badge2 = document.getElementById('badge-nav-crypt');
-        badge2.innerText = "[CLEARED]";
-        badge2.style.color = "var(--glow-green)";
-
-        // Destrancar o botão do Cold Storage
-        const coldSpot = document.getElementById('spot-cold');
-        coldSpot.classList.remove('hotspot-locked');
-        document.getElementById('label-spot-cold').innerText = "[CAM-05] STORAGE [UNLOCKED]";
-        const navCold = document.getElementById('nav-btn-3');
-        navCold.classList.remove('nav-locked');
-        const badge3 = document.getElementById('badge-nav-cold');
-        badge3.innerText = "[ACTIVE]";
-        badge3.style.color = "var(--amber)";
-
-        setTimeout(() => {
-          closeAltarModal();
-          returnToFoyer();
-        }, 2200);
-      } else {
-        beep(140, 'sawtooth', 0.35);
-        status.className = "status-msg status-denied";
-        status.innerText = `✗ GLYPH "${entered}" REJECTED: WARD HOLDS.`;
-        input.value = "";
-        input.focus();
-      }
-    }
-
-    /* 3. COLD STORAGE */
-    function openValvesModal() {
-      beep(700, 'sine', 0.08);
-      document.getElementById('valvesModal').classList.add('active');
-    }
-
-    function closeValvesModal() {
-      beep(400, 'sine', 0.08);
-      document.getElementById('valvesModal').classList.remove('active');
-    }
-
-    function checkValveSelection() {
-      beep(600, 'triangle', 0.06);
-      const t1 = document.getElementById('label-valve-1').value;
-      const t2 = document.getElementById('label-valve-2').value;
-      const t3 = document.getElementById('label-valve-3').value;
-
-      const feedback = document.getElementById('valvesFeedback');
-
-      if (t1 === "WARM" && t2 === "WIND" && t3 === "COLD") {
-        feedback.innerHTML = "✓ <strong>CORRECT VALVES DIAGRAM ALIGNMENT!</strong> Vance's manual confirms the emergency snowflake route is the third valve. Proceed to the Override Panel!";
-        feedback.style.borderLeftColor = "var(--glow-green)";
-        feedback.style.color = "#d4ffd8";
-        beep(550, 'sine', 0.15);
-        setTimeout(() => beep(750, 'sine', 0.25), 120);
-      }
-    }
-
-    function openBypassModal() {
-      beep(700, 'square', 0.08);
-      document.getElementById('bypassModal').classList.add('active');
-      setTimeout(() => {
-        const input = document.getElementById('coldInput');
-        if (input) input.focus();
-      }, 100);
-    }
-
-    function closeBypassModal() {
-      beep(400, 'square', 0.08);
-      document.getElementById('bypassModal').classList.remove('active');
-    }
-
-    function submitColdCode() {
-      const input = document.getElementById('coldInput');
-      const entered = input.value.trim().toUpperCase();
-      const status = document.getElementById('coldStatusMsg');
-
-      if (!entered) return;
-
-      if (entered === targetCold) {
-        beep(440, 'sine', 0.2);
-        setTimeout(() => beep(660, 'sine', 0.3), 160);
-        setTimeout(() => beep(880, 'sine', 0.4), 320);
-        status.className = "status-msg status-granted";
-        status.innerText = "✓ BYPASS CONFIRMED: THIRD OVERRIDE ACQUIRED. UNLOCKING MASTER VAULT ACCESS...";
-
-        // LIBERA PROGRESSIVAMENTE A SALA 4 (FINAL VAULT)
-        unlockedProgress.vault = true;
-        document.getElementById('spot-cold').classList.add('hotspot-cleared');
-        document.getElementById('label-spot-cold').innerText = "[CAM-05] STORAGE ✓ CLEARED";
-        const badge3 = document.getElementById('badge-nav-cold');
-        badge3.innerText = "[CLEARED]";
-        badge3.style.color = "var(--glow-green)";
-
-        // Destrancar o botão do Vault
-        const vaultSpot = document.getElementById('spot-terminal');
-        vaultSpot.classList.remove('hotspot-locked');
-        document.getElementById('label-spot-vault').innerText = "[CAM-06] VAULT [UNLOCKED]";
-        const navVault = document.getElementById('nav-btn-4');
-        navVault.classList.remove('nav-locked');
-        const badge4 = document.getElementById('badge-nav-vault');
-        badge4.innerText = "[ACTIVE]";
-        badge4.style.color = "var(--amber)";
-
-        setTimeout(() => {
-          closeBypassModal();
-          returnToFoyer();
-        }, 2200);
-      } else {
-        beep(140, 'sawtooth', 0.35);
-        status.className = "status-msg status-denied";
-        status.innerText = `✗ BYPASS "${entered}" REJECTED: SYSTEM LOCKOUT.`;
-        input.value = "";
-        input.focus();
-      }
-    }
-
-    /* 4. THE FINAL VAULT */
-    function openMatrixModal() {
-      beep(700, 'sine', 0.08);
-      document.getElementById('matrixModal').classList.add('active');
-    }
-
-    function closeMatrixModal() {
-      beep(400, 'sine', 0.08);
-      document.getElementById('matrixModal').classList.remove('active');
-    }
-
-    function openFinalModal() {
-      beep(700, 'square', 0.08);
-      document.getElementById('finalModal').classList.add('active');
-      setTimeout(() => {
-        const input = document.getElementById('finalInput');
-        if (input) input.focus();
-      }, 100);
-    }
-
-    function closeFinalModal() {
-      beep(400, 'square', 0.08);
-      document.getElementById('finalModal').classList.remove('active');
-    }
-
-    function submitFinalCode() {
-      const input = document.getElementById('finalInput');
-      const entered = input.value.trim().toUpperCase();
-      const status = document.getElementById('finalStatusMsg');
-
-      if (!entered) return;
-
-      if (entered === targetFinal) {
-        // Sucesso épico com acorde C maior de 4 notas
-        beep(523.25, 'sine', 0.2); // C5
-        setTimeout(() => beep(659.25, 'sine', 0.2), 150); // E5
-        setTimeout(() => beep(783.99, 'sine', 0.2), 300); // G5
-        setTimeout(() => beep(1046.50, 'sine', 0.8), 450); // C6
-
-        status.className = "status-msg status-granted";
-        status.innerText = "✓ EXTRACTION CODE CONFIRMED! THE BLAST DOOR UNLOCKS! EVACUATING EXPEDITION VANCE...";
-
-        document.getElementById('spot-terminal').classList.add('hotspot-cleared');
-        document.getElementById('label-spot-vault').innerText = "[CAM-06] VAULT ✓ ESCAPED";
-        const badge = document.getElementById('badge-nav-vault');
-        badge.innerText = "[ESCAPED]";
-        badge.style.color = "var(--glow-green)";
-
-        clearInterval(timerInterval);
-        timerRunning = false;
-
-        setTimeout(() => {
-          alert("🏆 MISSION ACCOMPLISHED! All 4 sector matrices unlocked. The Vance Expedition has successfully escaped Blackwood Manor!");
-        }, 2500);
-      } else {
-        beep(140, 'sawtooth', 0.35);
-        status.className = "status-msg status-denied";
-        status.innerText = `✗ CODE "${entered}" REJECTED: EXTRACTION MATRIX INCOMPLETE.`;
-        input.value = "";
-        input.focus();
-      }
-    }
-
-    /* Atalhos de teste do professor: Shift + F volta pro saguão */
-    window.addEventListener('keydown', (e) => {
-      if (e.shiftKey && (e.key === 'F' || e.key === 'f')) {
-        initAudio();
-        startTimer();
-        returnToFoyer();
-      }
-    });
-
-    function switchCamera(roomId, label) {
-      beep(800, 'square', 0.08);
-      setTimeout(() => beep(660, 'square', 0.1), 90);
-      document.getElementById('headerFeedLabel').innerText = label;
-      showView(`view-${roomId}`);
-    }
-
-    function returnToFoyer() {
-      beep(500, 'square', 0.12);
-      document.getElementById('headerFeedLabel').innerText = "CAM-02 [MAIN FOYER // CENTRAL HUB]";
-      showView('view-foyer');
-    }
-  </script>
+  }
+
+  // Scene 3: Retrieve Radio
+  function clickRadio() {
+    playTone(750, 'sine', 0.4);
+    document.getElementById("inv-radio").style.display = "inline-block";
+    document.getElementById("modal-act1-win").classList.add("active");
+  }
+
+  function proceedNextAct() {
+    playTone(520, 'sine', 0.2);
+    document.getElementById("modal-act1-win").classList.remove("active");
+    document.getElementById("trk-1").className = "track-step completed";
+    document.getElementById("trk-2").className = "track-step active";
+    alert("Sector 1 Complete! Ready for Sector 2 (The Infirmary).");
+  }
+</script>
 </body>
 </html>
