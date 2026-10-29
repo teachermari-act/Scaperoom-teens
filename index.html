@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Camp Nightwing 1978 // Central Terminal</title>
+<title>Camp Nightwing 1978 // Central Terminal (Acts 1-4 Complete)</title>
 <style>
   :root {
     --bg: #050403;
@@ -29,7 +29,6 @@
     background-size: 20px 20px;
     overflow-x: hidden;
   }
-
   .game-container {
     width: 100%;
     max-width: 1060px;
@@ -40,8 +39,6 @@
     overflow: hidden;
     position: relative;
   }
-
-  /* Retro CRT line effect */
   .game-container::after {
     content: " ";
     position: absolute;
@@ -52,8 +49,6 @@
     pointer-events: none;
     opacity: 0.5;
   }
-
-  /* HUD Header */
   .hud-top {
     background: #17130f;
     border-bottom: 2px solid var(--border);
@@ -91,8 +86,15 @@
     animation: pulse 1.2s infinite;
   }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
-
-  /* Journey Route Tracker */
+  .act-quick-select {
+    background: #201a14;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
   .journey-bar {
     background: #0a0907;
     border-bottom: 1px solid var(--border);
@@ -109,11 +111,10 @@
     color: var(--muted);
     letter-spacing: 1px;
     font-weight: bold;
+    transition: color 0.3s;
   }
   .track-step.active { color: var(--accent-gold); }
   .track-step.completed { color: #2ecc71; }
-
-  /* Inventory Bar */
   .inventory-bar {
     background: #0f0d0a;
     border-bottom: 1px dashed var(--border);
@@ -123,6 +124,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
   }
   .inv-tag {
     background: #201a14;
@@ -130,11 +132,12 @@
     color: #e6af82;
     padding: 2px 8px;
     border-radius: 4px;
+    transition: all 0.3s;
   }
-
-  /* ======================================================== */
-  /* SCREEN 1: BRIEFING                                       */
-  /* ======================================================== */
+  .inv-acquired {
+    color: #2ecc71;
+    border-color: #2ecc71;
+  }
   .screen-briefing {
     padding: 40px 24px;
     text-align: center;
@@ -192,10 +195,6 @@
     transition: all 0.2s;
   }
   .btn-start:hover { background: #e74c3c; transform: translateY(-2px); }
-
-  /* ======================================================== */
-  /* SCREEN 2: POINT-AND-CLICK VIEWPORT                      */
-  /* ======================================================== */
   .screen-game {
     display: none;
     position: relative;
@@ -214,10 +213,8 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.4s ease;
   }
-
-  /* Hotspot Overlays (Point-and-Click) */
   .hotspot {
     position: absolute;
     cursor: pointer;
@@ -225,18 +222,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 1px dashed rgba(230, 126, 34, 0.3);
+    border: 1px dashed rgba(230, 126, 34, 0.35);
     border-radius: 6px;
     transition: all 0.2s;
   }
   .hotspot:hover {
-    background: rgba(230, 126, 34, 0.2);
+    background: rgba(230, 126, 34, 0.25);
     border: 2px solid #e67e22;
     box-shadow: 0 0 15px rgba(230, 126, 34, 0.6);
   }
   .hotspot-tag {
     opacity: 0;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.88);
     color: #f5ece2;
     border: 1px solid #e67e22;
     padding: 4px 10px;
@@ -250,8 +247,11 @@
     text-shadow: 0 0 4px #000;
   }
   .hotspot:hover .hotspot-tag { opacity: 1; }
-
-  /* Dynamic Location & Instruction Footer */
+  .breaker-active {
+    background: rgba(39, 174, 96, 0.4) !important;
+    border: 2px solid #2ecc71 !important;
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.8) !important;
+  }
   .viewport-footer {
     background: #14110e;
     border-top: 1px solid var(--border);
@@ -281,8 +281,6 @@
     display: none;
   }
   .btn-back:hover { background: #33271c; border-color: var(--accent-gold); }
-
-  /* Cinematic Notification Popups */
   .toast {
     position: absolute;
     bottom: 60px;
@@ -302,8 +300,153 @@
     max-width: 80%;
   }
   @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
-
-  /* VICTORY OVERLAY FOR ACT 1 */
+  .custom-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 85;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .custom-modal.open { display: flex; }
+  .modal-card {
+    background: #15120e;
+    border: 2px solid var(--accent-gold);
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+  }
+  .modal-card h3 {
+    font-size: 16px;
+    color: var(--accent-gold);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .modal-card p {
+    font-size: 13px;
+    color: #d1c3b2;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .dials-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .dial-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .dial-btn {
+    background: #251d16;
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 40px;
+    height: 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .dial-btn:hover { background: #3b2c1f; border-color: var(--accent-gold); }
+  .dial-value {
+    background: #080706;
+    border: 1px solid var(--border);
+    color: #58d68d;
+    font-size: 20px;
+    font-weight: bold;
+    width: 60px;
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+  .wire-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  .wire-item {
+    background: #0a0806;
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .wire-label { font-size: 13px; font-weight: bold; }
+  .wire-select {
+    background: #1c1611;
+    border: 1px solid var(--border);
+    color: #58d68d;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .keypad-display {
+    background: #080504;
+    border: 2px solid #55110a;
+    color: #ff3b30;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 6px;
+    padding: 10px 0;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    text-shadow: 0 0 10px rgba(255,59,48,0.7);
+  }
+  .keypad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 260px;
+    margin: 0 auto 16px auto;
+  }
+  .key-btn {
+    background: #241c14;
+    border: 1px solid #4a3826;
+    color: #f0e2d1;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #120e0a;
+  }
+  .key-btn:hover { background: #382c20; border-color: var(--accent-gold); }
+  .key-btn:active { transform: translateY(2px); box-shadow: none; }
+  .btn-submit-action {
+    background: var(--accent-green);
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .btn-close-action {
+    background: #2b2219;
+    border: 1px solid var(--border);
+    color: #aaa;
+    padding: 10px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
   .modal-win {
     display: none;
     position: fixed;
@@ -352,16 +495,19 @@
 <body>
 
 <div class="game-container">
-  <!-- HUD Top -->
   <div class="hud-top">
     <div class="hud-title">CAMP NIGHTWING // OPERATIONS DESK 1978</div>
     <div class="hud-status">
-      <span style="color:var(--muted)">SECTOR: 1</span>
+      <select class="act-quick-select" onchange="jumpToAct(this.value)">
+        <option value="1">Act 1: Campgrounds</option>
+        <option value="2">Act 2: Infirmary</option>
+        <option value="3">Act 3: Generator</option>
+        <option value="4">Act 4: North Gate</option>
+      </select>
       <div class="rec-badge"><span class="rec-dot"></span> LIVE LINK</div>
     </div>
   </div>
 
-  <!-- Route Tracker -->
   <div class="journey-bar">
     <div class="track-step active" id="trk-1">● 1. CAMPGROUNDS</div>
     <div class="track-step" id="trk-2">○ 2. INFIRMARY</div>
@@ -369,103 +515,352 @@
     <div class="track-step" id="trk-4">○ 4. NORTH GATE</div>
   </div>
 
-  <!-- Inventory Strip -->
   <div class="inventory-bar">
     <span>🎒 INVENTORY:</span>
-    <span class="inv-tag" id="inv-light">🔦 Flashlight (Low)</span>
-    <span class="inv-tag" id="inv-map">🗺️ Camp Map 1978</span>
-    <span class="inv-tag" id="inv-radio" style="display:none; color:#2ecc71; border-color:#2ecc71;">📻 Police Two-Way Radio</span>
+    <span class="inv-tag">🔦 Flashlight</span>
+    <span class="inv-tag">🗺️ Camp Map 1978</span>
+    <span class="inv-tag" id="inv-radio" style="display:none;">📻 Police Two-Way Radio</span>
+    <span class="inv-tag" id="inv-gen-key" style="display:none;">🗝️ Generator Brass Key</span>
+    <span class="inv-tag" id="inv-power" style="display:none;">⚡ Camp Power Online</span>
+    <span class="inv-tag" id="inv-gate-unlocked" style="display:none;">🔓 North Gate Override Active</span>
   </div>
 
-  <!-- SCREEN 1: BRIEFING -->
   <div class="screen-briefing" id="scr-briefing">
     <div class="stamp">Incident Dossier #78</div>
     <h1 class="title-hero">CAMP NIGHTWING</h1>
     <div class="date-hero">SHADYSIDE, JULY 19, 1978 — MIDNIGHT CRISIS</div>
 
     <div class="briefing-box">
-      <p><strong>🚨 THE EMERGENCY:</strong> At 23:30, the camp sirens were triggered. The main electrical line died and telephone wires were cut with an axe. A masked killer is roaming the campsite.</p>
+      <p><strong>🚨 THE EMERGENCY:</strong> At 23:30, the camp sirens were triggered. The telephone wires were cut with an axe, and a masked figure is prowling the grounds.</p>
       <br>
-      <p><strong>👥 COOPERATIVE PROTOCOL:</strong> The student (Counselor) has the field map and survival toolkit on their mobile phone. The teacher (Radio Base) has access to the confidential police archives.</p>
+      <p><strong>👥 COOPERATIVE PROTOCOL:</strong> The student (Counselor) has the field dossier on mobile. The teacher (Radio Base) has access to the confidential archives on desktop.</p>
       <br>
-      <p><strong>🎯 OBJECTIVE:</strong> The student must guide the movement via radio in English. Explore the campsite, find the Sheriff's hidden emergency radio, and navigate through the camp sectors to escape before midnight!</p>
+      <p><strong>🎯 CONTINUOUS MISSION:</strong> Complete all 4 sectors in sequence without refreshing. Guide movement in English, locate the radio, bypass the medical strongbox, restart the generator, and override the North Gate to escape!</p>
     </div>
 
     <button class="btn-start" onclick="initGame()">Initiate Exploration Link</button>
   </div>
 
-  <!-- SCREEN 2: POINT-AND-CLICK VIEWPORT -->
   <div class="screen-game" id="scr-game">
     <div class="viewport" id="viewport">
-      <!-- Scene Image -->
-      <img src="https://i.imgur.com/QtDiwVn.jpeg" alt="Camp Fork" class="scene-img" id="scene-img">
+      <img src="https://i.imgur.com/QtDiwVn.jpeg" alt="Scene" class="scene-img" id="scene-img">
 
-      <!-- SCENE 1 HOTSPOTS: FORK IN THE WOODS -->
+      <!-- ACT 1 HOTSPOTS -->
       <div id="hotspots-fork">
-        <!-- Lake Path (Left) -->
         <div class="hotspot" style="top: 36%; left: 8%; width: 22%; height: 42%;" onclick="clickPath('lake')">
           <span class="hotspot-tag">➔ LAKE AREA (Cabins 1 & 2)</span>
         </div>
-        <!-- Deep Woods (Center) -->
         <div class="hotspot" style="top: 34%; left: 45%; width: 18%; height: 40%;" onclick="clickPath('woods')">
           <span class="hotspot-tag">➔ DEEP WOODS (Cabins 3 & 4)</span>
         </div>
-        <!-- Campfire Area (Right) -->
         <div class="hotspot" style="top: 38%; left: 78%; width: 20%; height: 44%;" onclick="clickPath('campfire')">
           <span class="hotspot-tag">➔ CAMPFIRE AREA (Cabins 5 & 6)</span>
         </div>
       </div>
 
-      <!-- SCENE 2 HOTSPOTS: CAMPFIRE CABINS (5 & 6) -->
       <div id="hotspots-campfire" style="display:none;">
-        <!-- Cabin 5 Door (Blue door) -->
         <div class="hotspot" style="top: 38%; left: 37%; width: 10%; height: 26%;" onclick="clickCabin(5)">
           <span class="hotspot-tag">🚪 CABIN 5 (Blue Door)</span>
         </div>
-        <!-- Cabin 6 Door (Green door) -->
         <div class="hotspot" style="top: 36%; left: 70%; width: 11%; height: 32%;" onclick="clickCabin(6)">
           <span class="hotspot-tag">🚪 CABIN 6 (Green Door)</span>
         </div>
       </div>
 
-      <!-- SCENE 3 HOTSPOTS: INSIDE CABIN 6 -->
-      <div id="hotspots-inside" style="display:none;">
-        <!-- Under Bunk Bed (Radio Target) -->
+      <div id="hotspots-cabin-inside" style="display:none;">
         <div class="hotspot" style="top: 65%; left: 56%; width: 16%; height: 22%;" onclick="clickRadio()">
           <span class="hotspot-tag">🔍 INSPECT METAL BOX</span>
         </div>
       </div>
 
-      <!-- Toast Notification -->
+      <!-- ACT 2 HOTSPOTS -->
+      <div id="hotspots-inf-exterior" style="display:none;">
+        <div class="hotspot" style="top: 42%; left: 63%; width: 11%; height: 32%;" onclick="enterInfirmary()">
+          <span class="hotspot-tag">🚪 ENTER INFIRMARY</span>
+        </div>
+        <div class="hotspot" style="top: 40%; left: 79%; width: 14%; height: 26%;" onclick="showToast('Rain streaks down the dark window. Glass bottles glimmer inside.')">
+          <span class="hotspot-tag">🔍 PEER THROUGH WINDOW</span>
+        </div>
+      </div>
+
+      <div id="hotspots-inf-interior" style="display:none;">
+        <div class="hotspot" style="top: 52%; left: 50%; width: 20%; height: 26%;" onclick="zoomCounter()">
+          <span class="hotspot-tag">🔍 EXAMINE MEDICAL COUNTER</span>
+        </div>
+        <div class="hotspot" style="top: 25%; left: 44%; width: 9%; height: 20%;" onclick="showToast('Wall Cabinet: Ransacked bandages and empty vials. The safe is on the counter.')">
+          <span class="hotspot-tag">🔍 WALL CABINET</span>
+        </div>
+        <div class="hotspot" style="top: 50%; left: 11%; width: 20%; height: 25%;" onclick="showToast('Overturned bed with torn sheets. Signs of a sudden escape.')">
+          <span class="hotspot-tag">🔍 EXAMINE STRETCHER</span>
+        </div>
+      </div>
+
+      <div id="hotspots-inf-counter" style="display:none;">
+        <div class="hotspot" style="top: 27%; left: 21%; width: 8%; height: 26%;" onclick="showToast('Amber Glass Jar: Brown powder marked with code PR.')">
+          <span class="hotspot-tag">💊 AMBER JAR (PR)</span>
+        </div>
+        <div class="hotspot" style="top: 25%; left: 30%; width: 8%; height: 28%;" onclick="showToast('Blue Flask: Dark liquid antiseptic marked with code DI.')">
+          <span class="hotspot-tag">🧪 BLUE FLASK (DI)</span>
+        </div>
+        <div class="hotspot" style="top: 32%; left: 39%; width: 6%; height: 24%;" onclick="showToast('Green Dropper: Clear green heart stimulant marked with code HS.')">
+          <span class="hotspot-tag">💧 GREEN DROPPER (HS)</span>
+        </div>
+        <div class="hotspot" style="top: 36%; left: 45%; width: 6%; height: 22%;" onclick="showToast('Clear Vial with X-Cross: Lethal toxic sedative! Do not administer!')">
+          <span class="hotspot-tag">⚠️ X-CROSS VIAL (TOXIC)</span>
+        </div>
+        <div class="hotspot" style="top: 34%; left: 60%; width: 28%; height: 24%;" onclick="openLockModal()">
+          <span class="hotspot-tag">🔐 OPEN 3-DIAL STRONGBOX</span>
+        </div>
+      </div>
+
+      <!-- ACT 3 HOTSPOTS -->
+      <div id="hotspots-gen-exterior" style="display:none;">
+        <div class="hotspot" style="top: 48%; left: 60%; width: 12%; height: 18%;" onclick="unlockGeneratorDoor()">
+          <span class="hotspot-tag">🗝️ UNLOCK BRASS PADLOCK</span>
+        </div>
+      </div>
+
+      <div id="hotspots-gen-interior" style="display:none;">
+        <div class="hotspot" style="top: 15%; left: 88%; width: 11%; height: 55%;" onclick="zoomElectricalPanel()">
+          <span class="hotspot-tag">⚡ EXAMINE BREAKER PANEL</span>
+        </div>
+        <div class="hotspot" style="top: 34%; left: 26%; width: 28%; height: 42%;" onclick="showToast('Heavy Caterpillar diesel engine. It needs breakers engaged before ignition.')">
+          <span class="hotspot-tag">🔍 DIESEL MOTOR</span>
+        </div>
+      </div>
+
+      <div id="hotspots-gen-panel" style="display:none;">
+        <div class="hotspot" id="sw-a" style="top: 25%; left: 41%; width: 16%; height: 12%;" onclick="toggleBreaker('A')">
+          <span class="hotspot-tag">⚠️ BREAKER A (RED)</span>
+        </div>
+        <div class="hotspot" id="sw-b" style="top: 38%; left: 41%; width: 16%; height: 12%;" onclick="toggleBreaker('B')">
+          <span class="hotspot-tag">⚡ BREAKER B (YELLOW)</span>
+        </div>
+        <div class="hotspot" id="sw-c" style="top: 51%; left: 41%; width: 16%; height: 12%;" onclick="toggleBreaker('C')">
+          <span class="hotspot-tag">⚡ BREAKER C (BLUE)</span>
+        </div>
+        <div class="hotspot" id="sw-d" style="top: 64%; left: 41%; width: 16%; height: 12%;" onclick="toggleBreaker('D')">
+          <span class="hotspot-tag">⚡ BREAKER D (GREEN)</span>
+        </div>
+        <div class="hotspot" style="top: 38%; left: 60%; width: 8%; height: 32%;" onclick="pullMainLever()">
+          <span class="hotspot-tag">🕹️ PULL MAIN IGNITION LEVER</span>
+        </div>
+      </div>
+
+      <!-- ACT 4 HOTSPOTS (NORTH GATE ESCAPE) -->
+      <div id="hotspots-gate-exterior" style="display:none;">
+        <div class="hotspot" style="top: 34%; left: 78%; width: 18%; height: 48%;" onclick="enterGuardShack()">
+          <span class="hotspot-tag">🚪 ENTER GUARD SHACK</span>
+        </div>
+        <div class="hotspot" style="top: 28%; left: 32%; width: 36%; height: 48%;" onclick="inspectMainGateChain()">
+          <span class="hotspot-tag">🔒 INSPECT HEAVY GATE CHAINS</span>
+        </div>
+        <div class="hotspot" style="top: 48%; left: 2%; width: 28%; height: 36%;" onclick="showToast('The camp evacuation van! Engine idling, waiting for the gate to open!')">
+          <span class="hotspot-tag">🚐 EVACUATION VAN</span>
+        </div>
+      </div>
+
+      <div id="hotspots-shack-interior" style="display:none;">
+        <div class="hotspot" style="top: 22%; left: 88%; width: 11%; height: 68%;" onclick="zoomGateConsole()">
+          <span class="hotspot-tag">🕹️ EXAMINE CONTROL CONSOLE</span>
+        </div>
+        <div class="hotspot" style="top: 60%; left: 67%; width: 15%; height: 22%;" onclick="showToast('Security CRT Monitor: Rain washes across the chained iron gates.')">
+          <span class="hotspot-tag">📺 SECURITY MONITOR</span>
+        </div>
+        <div class="hotspot" style="top: 68%; left: 53%; width: 14%; height: 18%;" onclick="showToast('Base Radio Unit: Police dispatch channel is ready.')">
+          <span class="hotspot-tag">📻 BASE RADIO UNIT</span>
+        </div>
+        <div class="hotspot" style="top: 74%; left: 25%; width: 22%; height: 16%;" onclick="showToast('Emergency Clipboard: Evacuation protocol and sector alert guidelines.')">
+          <span class="hotspot-tag">📋 LOG CLIPBOARD</span>
+        </div>
+      </div>
+
+      <div id="hotspots-gate-console" style="display:none;">
+        <div class="hotspot" style="top: 57%; left: 63%; width: 13%; height: 24%;" onclick="openKeypadModal()">
+          <span class="hotspot-tag">🔢 INPUT OVERRIDE PASSCODE</span>
+        </div>
+        <div class="hotspot" style="top: 56%; left: 50%; width: 10%; height: 22%;" onclick="pushEmergencyButton()">
+          <span class="hotspot-tag">🚨 PUSH EMERGENCY OVERRIDE</span>
+        </div>
+        <div class="hotspot" style="top: 15%; left: 32%; width: 10%; height: 14%;" onclick="showToast('Switch: NORTH GATE (Online via auxiliary grid).')">
+          <span class="hotspot-tag">⚡ NORTH GATE SWITCH</span>
+        </div>
+      </div>
+
       <div class="toast" id="toast-msg"></div>
     </div>
 
-    <!-- Viewport Footer -->
     <div class="viewport-footer">
       <div class="loc-text" id="footer-loc">📍 LOCATION: Crossroad Fork (Camp Nightwing)</div>
       <div class="feedback-text" id="footer-hint">Student: Guide your partner in English using your map!</div>
-      <button class="btn-back" id="btn-back" onclick="goBackToFork()">⮌ Back to Trail</button>
+      <button class="btn-back" id="btn-back" onclick="handleBackAction()">⮌ Step Back</button>
     </div>
   </div>
 </div>
 
-<!-- WIN / ADVANCE MODAL -->
+<!-- LOCKPAD MODAL (ACT 2 SAFE) -->
+<div class="custom-modal" id="lock-modal">
+  <div class="modal-card">
+    <h3>CHEMICAL STRONGBOX LOCK</h3>
+    <p>Set the 3 chemical dials according to the physician's prescribed sequence:</p>
+    <div class="dials-row">
+      <div class="dial-col">
+        <button class="dial-btn" onclick="cycleDial(0, 1)">▲</button>
+        <div class="dial-value" id="dial-0">PR</div>
+        <button class="dial-btn" onclick="cycleDial(0, -1)">▼</button>
+      </div>
+      <div class="dial-col">
+        <button class="dial-btn" onclick="cycleDial(1, 1)">▲</button>
+        <div class="dial-value" id="dial-1">PR</div>
+        <button class="dial-btn" onclick="cycleDial(1, -1)">▼</button>
+      </div>
+      <div class="dial-col">
+        <button class="dial-btn" onclick="cycleDial(2, 1)">▲</button>
+        <div class="dial-value" id="dial-2">PR</div>
+        <button class="dial-btn" onclick="cycleDial(2, -1)">▼</button>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="btn-submit-action" onclick="verifyLock()">Unlock Strongbox</button>
+      <button class="btn-close-action" onclick="closeLockModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODO B: WIRE TRACING MODAL (ACT 3) -->
+<div class="custom-modal" id="wire-modal">
+  <div class="modal-card">
+    <h3>⚡ WIRE TRACING & RELAY BYPASS</h3>
+    <p>Breakers B, C & D engaged. The technician crossed the wiring into 3 output relays. Trace the cables with your partner and assign each wire to its destination relay:</p>
+    
+    <div class="wire-rows">
+      <div class="wire-item">
+        <span class="wire-label" style="color:#f1c40f;">🟡 YELLOW WIRE (Switch B):</span>
+        <select class="wire-select" id="wire-b">
+          <option value="none">Select...</option>
+          <option value="1">Relay 1</option>
+          <option value="2">Relay 2</option>
+          <option value="3">Relay 3</option>
+        </select>
+      </div>
+      <div class="wire-item">
+        <span class="wire-label" style="color:#3498db;">🔵 BLUE WIRE (Switch C):</span>
+        <select class="wire-select" id="wire-c">
+          <option value="none">Select...</option>
+          <option value="1">Relay 1</option>
+          <option value="2">Relay 2</option>
+          <option value="3">Relay 3</option>
+        </select>
+      </div>
+      <div class="wire-item">
+        <span class="wire-label" style="color:#2ecc71;">🟢 GREEN WIRE (Switch D):</span>
+        <select class="wire-select" id="wire-d">
+          <option value="none">Select...</option>
+          <option value="1">Relay 1</option>
+          <option value="2">Relay 2</option>
+          <option value="3">Relay 3</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="btn-submit-action" onclick="verifyWireBypass()">Engage Bypass & Start</button>
+      <button class="btn-close-action" onclick="closeWireModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACT 4: KEYPAD MODAL -->
+<div class="custom-modal" id="keypad-modal">
+  <div class="modal-card">
+    <h3>SECURITY GATE OVERRIDE</h3>
+    <p>Enter the 4-digit evacuation bypass code derived from Sector Priority & Highway Route:</p>
+    
+    <div class="keypad-display" id="keypad-display">_ _ _ _</div>
+    
+    <div class="keypad-grid">
+      <button class="key-btn" onclick="enterKeyDigit('1')">1</button>
+      <button class="key-btn" onclick="enterKeyDigit('2')">2</button>
+      <button class="key-btn" onclick="enterKeyDigit('3')">3</button>
+      <button class="key-btn" onclick="enterKeyDigit('4')">4</button>
+      <button class="key-btn" onclick="enterKeyDigit('5')">5</button>
+      <button class="key-btn" onclick="enterKeyDigit('6')">6</button>
+      <button class="key-btn" onclick="enterKeyDigit('7')">7</button>
+      <button class="key-btn" onclick="enterKeyDigit('8')">8</button>
+      <button class="key-btn" onclick="enterKeyDigit('9')">9</button>
+      <button class="key-btn" style="color:#e74c3c;" onclick="clearKeypad()">C</button>
+      <button class="key-btn" onclick="enterKeyDigit('0')">0</button>
+      <button class="key-btn" style="color:#2ecc71;" onclick="submitGateCode()">OK</button>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="btn-close-action" onclick="closeKeypadModal()">Close Panel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VITÓRIA ATO 1 -->
 <div class="modal-win" id="modal-act1-win">
   <div class="modal-win-box">
     <h2>📻 POLICE RADIO RECOVERED!</h2>
     <p>
-      You pulled the heavy metal radio from underneath the wooden bunk! The green power light blinks on, and static clears:
+      You pulled the heavy metal radio from underneath the bunk! The green power light blinks on, and static clears:
       <br><br>
-      <em>"Radio base to counselor! Signal is loud and clear! We verified the next checkpoint: head straight to the <strong>Infirmary</strong> to find the master electrical key!"</em>
+      <em>"Radio base to counselor! Loud and clear! Move directly across the trail to <strong>Sector 2: The Infirmary</strong> to find the master electrical key!"</em>
     </p>
-    <button class="btn-next-act" onclick="proceedNextAct()">Proceed to Sector 2: The Infirmary ➔</button>
+    <button class="btn-next-act" onclick="transitionToAct2()">Proceed to Sector 2: The Infirmary ➔</button>
+  </div>
+</div>
+
+<!-- MODAL VITÓRIA ATO 2 -->
+<div class="modal-win" id="modal-act2-win">
+  <div class="modal-win-box">
+    <h2>🗝️ STRONGBOX OPENED!</h2>
+    <p>
+      The heavy tumblers slide back with a solid metallic click! Inside the padded compartment rests the heavy <strong>Brass Generator Key</strong>.
+      <br><br>
+      <em>"Dispatcher to counselor! You have the key! Move immediately to <strong>Sector 3: The Generator Shed</strong> before the storm knocks out what little backup power we have left!"</em>
+    </p>
+    <button class="btn-next-act" onclick="transitionToAct3()">Proceed to Sector 3: The Generator ➔</button>
+  </div>
+</div>
+
+<!-- MODAL VITÓRIA ATO 3 -->
+<div class="modal-win" id="modal-act3-win">
+  <div class="modal-win-box">
+    <h2>⚡ POWER RESTORED!</h2>
+    <p>
+      The relays engage with a sharp mechanical thud! The massive diesel engine roars to life, and across the camp, halogen floodlights blaze on, cutting through the rain.
+      <br><br>
+      <em>"Radio Base to Counselor! The main electrical grid is live! The electronic lock on <strong>Sector 4: North Gate</strong> has powered up! Run to the gate now to make your escape!"</em>
+    </p>
+    <button class="btn-next-act" onclick="transitionToAct4()">Proceed to Sector 4: North Gate ➔</button>
+  </div>
+</div>
+
+<!-- MODAL VITÓRIA FINAL (ATO 4) -->
+<div class="modal-win" id="modal-act4-win">
+  <div class="modal-win-box" style="border-color:#e67e22; max-width:640px;">
+    <h2 style="color:#e67e22; font-size:26px;">🎉 SURVIVED THE NIGHT: 1978!</h2>
+    <p style="font-size:15px; color:#f0e4d5;">
+      The siren wails as the massive steel gate motors groan, pulling the chains apart! 
+      <br><br>
+      You sprint into the camp van, slamming the door just as a heavy thud strikes the back window. The tires spin in the thick mud, then grip the tarmac of Highway 9. 
+      <br><br>
+      <strong>Camp Nightwing fades into the rear-view mirror through the storm. You and your team made it out alive!</strong>
+    </p>
+    <button class="btn-next-act" style="background:#e67e22;" onclick="location.reload()">Replay Mission Link ↺</button>
   </div>
 </div>
 
 <script>
-  let currentScene = "fork";
+  let currentAct = 1;
+  let currentScene = "fork"; 
+  const codeOptions = ["PR", "DI", "HS", "XX"];
+  let dialIndices = [0, 0, 0];
+  let breakerSequence = [];
+  let enteredGateCode = "";
 
-  // Web Audio Synth for atmospheric clicks/beeps
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   function playTone(freq, type, dur) {
     try {
@@ -482,11 +877,24 @@
     } catch(e) {}
   }
 
-  function showToast(msg, dur=2400) {
+  function showToast(msg, dur=2600) {
     const t = document.getElementById("toast-msg");
     t.textContent = msg;
     t.style.display = "block";
     setTimeout(() => { t.style.display = "none"; }, dur);
+  }
+
+  function hideAllHotspots() {
+    const ids = [
+      "hotspots-fork", "hotspots-campfire", "hotspots-cabin-inside",
+      "hotspots-inf-exterior", "hotspots-inf-interior", "hotspots-inf-counter",
+      "hotspots-gen-exterior", "hotspots-gen-interior", "hotspots-gen-panel",
+      "hotspots-gate-exterior", "hotspots-shack-interior", "hotspots-gate-console"
+    ];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = "none";
+    });
   }
 
   function initGame() {
@@ -495,19 +903,19 @@
     document.getElementById("scr-game").style.display = "block";
   }
 
-  // Scene 1: Fork Decisions
+  /* ACT 1 */
   function clickPath(dest) {
     if (dest === "lake") {
       playTone(180, 'sawtooth', 0.25);
       showToast("⚠️ The sheriff's note says: 'The waters are not safe!' Lake is dangerous!");
     } else if (dest === "woods") {
       playTone(180, 'sawtooth', 0.25);
-      showToast("🌲 Witness Tommy reported the sheriff ran away from the woods toward the campfire!");
+      showToast("🌲 Tommy reported the sheriff ran away from the woods toward the campfire!");
     } else if (dest === "campfire") {
       playTone(520, 'triangle', 0.3);
       currentScene = "campfire";
       document.getElementById("scene-img").src = "https://i.imgur.com/zADlRHO.jpeg";
-      document.getElementById("hotspots-fork").style.display = "none";
+      hideAllHotspots();
       document.getElementById("hotspots-campfire").style.display = "block";
       document.getElementById("footer-loc").textContent = "📍 LOCATION: Campfire Grounds (Cabins 5 & 6)";
       document.getElementById("footer-hint").textContent = "Ask your partner which door color is correct!";
@@ -515,47 +923,410 @@
     }
   }
 
-  function goBackToFork() {
-    playTone(350, 'sine', 0.15);
-    currentScene = "fork";
-    document.getElementById("scene-img").src = "https://i.imgur.com/QtDiwVn.jpeg";
-    document.getElementById("hotspots-fork").style.display = "block";
-    document.getElementById("hotspots-campfire").style.display = "none";
-    document.getElementById("hotspots-inside").style.display = "none";
-    document.getElementById("footer-loc").textContent = "📍 LOCATION: Crossroad Fork (Camp Nightwing)";
-    document.getElementById("footer-hint").textContent = "Student: Guide your partner in English using your map!";
-    document.getElementById("btn-back").style.display = "none";
-  }
-
-  // Scene 2: Cabin Decisions
   function clickCabin(num) {
     if (num === 5) {
       playTone(180, 'square', 0.25);
       showToast("❌ Alice said: 'Cabin 5 lights are out. Nobody entered that blue door!'");
     } else if (num === 6) {
       playTone(600, 'triangle', 0.3);
-      currentScene = "inside";
+      currentScene = "cabin_inside";
       document.getElementById("scene-img").src = "https://i.imgur.com/5gC4yQQ.jpeg";
-      document.getElementById("hotspots-campfire").style.display = "none";
-      document.getElementById("hotspots-inside").style.display = "block";
+      hideAllHotspots();
+      document.getElementById("hotspots-cabin-inside").style.display = "block";
       document.getElementById("footer-loc").textContent = "📍 LOCATION: Inside Cabin 6 (Wooden Bunks)";
       document.getElementById("footer-hint").textContent = "Look around the room! Where did the sheriff hide it?";
     }
   }
 
-  // Scene 3: Retrieve Radio
   function clickRadio() {
     playTone(750, 'sine', 0.4);
-    document.getElementById("inv-radio").style.display = "inline-block";
+    const rad = document.getElementById("inv-radio");
+    rad.style.display = "inline-block";
+    rad.className = "inv-tag inv-acquired";
     document.getElementById("modal-act1-win").classList.add("active");
   }
 
-  function proceedNextAct() {
+  /* ACT 2 */
+  function transitionToAct2() {
     playTone(520, 'sine', 0.2);
     document.getElementById("modal-act1-win").classList.remove("active");
     document.getElementById("trk-1").className = "track-step completed";
+    document.getElementById("trk-1").textContent = "✓ 1. CAMPGROUNDS";
     document.getElementById("trk-2").className = "track-step active";
-    alert("Sector 1 Complete! Ready for Sector 2 (The Infirmary).");
+    document.getElementById("trk-2").textContent = "● 2. INFIRMARY";
+    loadAct2Exterior();
+  }
+
+  function loadAct2Exterior() {
+    currentAct = 2;
+    currentScene = "inf_exterior";
+    document.getElementById("scene-img").src = "https://i.imgur.com/oRv2XTn.jpeg";
+    hideAllHotspots();
+    document.getElementById("hotspots-inf-exterior").style.display = "block";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: Infirmary Façade (Camp Nightwing)";
+    document.getElementById("footer-hint").textContent = "Student: Switch to Part 2 on your phone and guide your partner!";
+    document.getElementById("btn-back").style.display = "none";
+  }
+
+  function enterInfirmary() {
+    playTone(520, 'triangle', 0.3);
+    currentScene = "inf_interior";
+    document.getElementById("scene-img").src = "https://i.imgur.com/4HsHMRz.jpeg";
+    hideAllHotspots();
+    document.getElementById("hotspots-inf-interior").style.display = "block";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: Inside Infirmary (Ward Room)";
+    document.getElementById("footer-hint").textContent = "Look around! Inspect the medicine counter in the center.";
+    document.getElementById("btn-back").style.display = "inline-block";
+  }
+
+  function zoomCounter() {
+    playTone(600, 'triangle', 0.25);
+    currentScene = "inf_counter";
+    document.getElementById("scene-img").src = "https://i.imgur.com/xXRjnf8.jpeg";
+    hideAllHotspots();
+    document.getElementById("hotspots-inf-counter").style.display = "block";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: Emergency Counter (Chemical Bottles & Safe)";
+    document.getElementById("footer-hint").textContent = "Inspect the bottles or click the Strongbox to input the code!";
+  }
+
+  function openLockModal() {
+    playTone(480, 'sine', 0.15);
+    document.getElementById("lock-modal").classList.add("open");
+  }
+  function closeLockModal() {
+    document.getElementById("lock-modal").classList.remove("open");
+  }
+  function cycleDial(idx, dir) {
+    playTone(300, 'triangle', 0.08);
+    dialIndices[idx] = (dialIndices[idx] + dir + codeOptions.length) % codeOptions.length;
+    document.getElementById("dial-" + idx).textContent = codeOptions[dialIndices[idx]];
+  }
+  function verifyLock() {
+    const code = dialIndices.map(i => codeOptions[i]).join("-");
+    if (code === "PR-DI-HS") {
+      playTone(750, 'sine', 0.4);
+      closeLockModal();
+      const k = document.getElementById("inv-gen-key");
+      k.style.display = "inline-block";
+      k.className = "inv-tag inv-acquired";
+      document.getElementById("modal-act2-win").classList.add("active");
+    } else {
+      playTone(160, 'sawtooth', 0.3);
+      alert("❌ INCORRECT SEQUENCE! Tumblers jammed. Check the treatment order with your partner!");
+    }
+  }
+
+  /* ACT 3 */
+  function transitionToAct3() {
+    playTone(520, 'sine', 0.2);
+    document.getElementById("modal-act2-win").classList.remove("active");
+    document.getElementById("trk-2").className = "track-step completed";
+    document.getElementById("trk-2").textContent = "✓ 2. INFIRMARY";
+    document.getElementById("trk-3").className = "track-step active";
+    document.getElementById("trk-3").textContent = "● 3. GENERATOR";
+    loadAct3Exterior();
+  }
+
+  function loadAct3Exterior() {
+    currentAct = 3;
+    currentScene = "gen_exterior";
+    document.getElementById("scene-img").src = "https://i.imgur.com/ZpJ4orY.jpeg";
+    hideAllHotspots();
+    document.getElementById("hotspots-gen-exterior").style.display = "block";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: Generator Shed (Camp Nightwing)";
+    document.getElementById("footer-hint").textContent = "The heavy chain is locked. Click the lock to use the Brass Key!";
+    document.getElementById("btn-back").style.display = "none";
+  }
+
+  function unlockGeneratorDoor() {
+    playTone(560, 'triangle', 0.35);
+    showToast("🔓 The brass key turns! The chain clatters to the mud. Entering shed...");
+    setTimeout(() => { enterGeneratorShed(); }, 1000);
+  }
+
+  function enterGeneratorShed() {
+    playTone(520, 'triangle', 0.3);
+    currentScene = "gen_interior";
+    document.getElementById("scene-img").src = "https://i.imgur.com/oSWnzx3.jpeg";
+    hideAllHotspots();
+    document.getElementById("hotspots-gen-interior").style.display = "block";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: Inside Generator Shed (Diesel Engine)";
+    document.getElementById("footer-hint").textContent = "Examine the breaker panel on the right wall!";
+    document.getElementById("btn-back").style.display = "inline-block";
+  }
+
+  function zoomElectricalPanel() {
+    playTone(600, 'triangle', 0.25);
+    currentScene = "gen_panel";
+    document.getElementById("scene-img").src = "https://i.imgur.com/n1tieNd.jpeg";
+    hideAllHotspots();
+    document.getElementById("hotspots-gen-panel").style.display = "block";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: 4-Channel Distribution Panel";
+    document.getElementById("footer-hint").textContent = "Engage safety breakers B, C & D, then pull the Ignition Lever!";
+  }
+
+  function toggleBreaker(letter) {
+    if (letter === "A") {
+      playTone(140, 'sawtooth', 0.4);
+      showToast("💥 DANGER! MAIN TRANSFORMER TRIPPED BEFORE SAFETY LOOPS! Panel reset!", 3500);
+      resetBreakers();
+      return;
+    }
+
+    const swEl = document.getElementById("sw-" + letter.toLowerCase());
+    if (breakerSequence.includes(letter)) {
+      playTone(280, 'square', 0.1);
+      breakerSequence = breakerSequence.filter(l => l !== letter);
+      swEl.classList.remove("breaker-active");
+    } else {
+      playTone(480, 'sine', 0.15);
+      breakerSequence.push(letter);
+      swEl.classList.add("breaker-active");
+      showToast("⚡ Breaker " + letter + " engaged!");
+    }
+  }
+
+  function resetBreakers() {
+    breakerSequence = [];
+    ["a", "b", "c", "d"].forEach(l => {
+      const el = document.getElementById("sw-" + l);
+      if (el) el.classList.remove("breaker-active");
+    });
+  }
+
+  function pullMainLever() {
+    playTone(320, 'triangle', 0.2);
+    const hasB = breakerSequence.includes("B");
+    const hasC = breakerSequence.includes("C");
+    const hasD = breakerSequence.includes("D");
+
+    if (hasB && hasC && hasD) {
+      openWireModal();
+    } else {
+      playTone(160, 'sawtooth', 0.35);
+      alert("❌ LEVER BLOCKED! You must engage all 3 required safety breakers (Perimeter Fence, Comm Tower, Floodlights) before ignition!");
+    }
+  }
+
+  function openWireModal() {
+    playTone(480, 'sine', 0.15);
+    document.getElementById("wire-modal").classList.add("open");
+  }
+  function closeWireModal() {
+    document.getElementById("wire-modal").classList.remove("open");
+  }
+
+  function verifyWireBypass() {
+    const valB = document.getElementById("wire-b").value;
+    const valC = document.getElementById("wire-c").value;
+    const valD = document.getElementById("wire-d").value;
+
+    if (valB === "3" && valC === "1" && valD === "2") {
+      playTone(700, 'sine', 0.6);
+      closeWireModal();
+      const pwr = document.getElementById("inv-power");
+      pwr.style.display = "inline-block";
+      pwr.className = "inv-tag inv-acquired";
+      document.getElementById("modal-act3-win").classList.add("active");
+    } else {
+      playTone(160, 'sawtooth', 0.35);
+      alert("❌ CROSS-WIRE ERROR! Relay impedance mismatch. Trace the cables carefully with your partner: Yellow Wire to Relay ?, Blue Wire to Relay ?, Green Wire to Relay ?");
+    }
+  }
+
+  /* ACT 4 */
+  function transitionToAct4() {
+    playTone(520, 'sine', 0.2);
+    document.getElementById("modal-act3-win").classList.remove("active");
+    document.getElementById("trk-3").className = "track-step completed";
+    document.getElementById("trk-3").textContent = "✓ 3. GENERATOR";
+    document.getElementById("trk-4").className = "track-step active";
+    document.getElementById("trk-4").textContent = "● 4. NORTH GATE";
+    loadAct4Exterior();
+  }
+
+  function loadAct4Exterior() {
+    currentAct = 4;
+    currentScene = "gate_exterior";
+    document.getElementById("scene-img").src = "https://i.imgur.com/jrW8izX.jpeg";
+    hideAllHotspots();
+    document.getElementById("hotspots-gate-exterior").style.display = "block";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: North Gate (Camp Nightwing Border)";
+    document.getElementById("footer-hint").textContent = "The gate is locked by electric winch. Enter the guard shack to the right!";
+    document.getElementById("btn-back").style.display = "none";
+  }
+
+  function inspectMainGateChain() {
+    playTone(200, 'square', 0.2);
+    showToast("🔒 Heavy industrial chain locked with high-voltage servo. Must be released from the control console inside!");
+  }
+
+  function enterGuardShack() {
+    playTone(540, 'triangle', 0.3);
+    currentScene = "shack_interior";
+    document.getElementById("scene-img").src = "https://i.imgur.com/HQMaEZA.jpeg";
+    hideAllHotspots();
+    document.getElementById("hotspots-shack-interior").style.display = "block";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: Inside Security Guard Shack";
+    document.getElementById("footer-hint").textContent = "Examine the wall control console on the far right!";
+    document.getElementById("btn-back").style.display = "inline-block";
+  }
+
+  function zoomGateConsole() {
+    playTone(600, 'triangle', 0.25);
+    currentScene = "gate_console";
+    document.getElementById("scene-img").src = "https://i.imgur.com/gjGiJVq.jpeg";
+    hideAllHotspots();
+    document.getElementById("hotspots-gate-console").style.display = "block";
+    document.getElementById("footer-loc").textContent = "📍 LOCATION: Security Control Console (Passcode Keypad)";
+    document.getElementById("footer-hint").textContent = "Input the 4-digit evacuation override code, then push the red Emergency Override button!";
+  }
+
+  function openKeypadModal() {
+    playTone(450, 'sine', 0.15);
+    enteredGateCode = "";
+    updateKeypadDisplay();
+    document.getElementById("keypad-modal").classList.add("open");
+  }
+  function closeKeypadModal() {
+    document.getElementById("keypad-modal").classList.remove("open");
+  }
+  function enterKeyDigit(digit) {
+    if (enteredGateCode.length < 4) {
+      playTone(650, 'sine', 0.08);
+      enteredGateCode += digit;
+      updateKeypadDisplay();
+    }
+  }
+  function clearKeypad() {
+    playTone(250, 'sawtooth', 0.1);
+    enteredGateCode = "";
+    updateKeypadDisplay();
+  }
+  function updateKeypadDisplay() {
+    let disp = enteredGateCode;
+    while (disp.length < 4) disp += " _";
+    document.getElementById("keypad-display").textContent = disp;
+  }
+
+  function submitGateCode() {
+    if (enteredGateCode === "5842") {
+      playTone(720, 'sine', 0.4);
+      closeKeypadModal();
+      const ov = document.getElementById("inv-gate-unlocked");
+      ov.style.display = "inline-block";
+      ov.className = "inv-tag inv-acquired";
+      showToast("🟢 OVERRIDE ACCEPTED! Main lock disengaged. Push the red Emergency Release button!", 4000);
+    } else {
+      playTone(150, 'sawtooth', 0.4);
+      alert("❌ ACCESS DENIED! Invalid Evacuation Code. Cross-reference Sector Alert Priority and Highway Route with your partner!");
+      clearKeypad();
+    }
+  }
+
+  function pushEmergencyButton() {
+    const isUnlocked = document.getElementById("inv-gate-unlocked").style.display !== "none";
+    if (isUnlocked) {
+      playTone(850, 'sine', 0.8);
+      document.getElementById("modal-act4-win").classList.add("active");
+    } else {
+      playTone(180, 'square', 0.3);
+      showToast("⚠️ OVERRIDE REQUIRED: You must input the valid 4-digit security code on the keypad first!");
+    }
+  }
+
+  /* Back navigation */
+  function handleBackAction() {
+    playTone(350, 'sine', 0.15);
+    if (currentScene === "campfire") {
+      currentScene = "fork";
+      document.getElementById("scene-img").src = "https://i.imgur.com/QtDiwVn.jpeg";
+      hideAllHotspots();
+      document.getElementById("hotspots-fork").style.display = "block";
+      document.getElementById("footer-loc").textContent = "📍 LOCATION: Crossroad Fork (Camp Nightwing)";
+      document.getElementById("footer-hint").textContent = "Student: Guide your partner in English using your map!";
+      document.getElementById("btn-back").style.display = "none";
+    } else if (currentScene === "cabin_inside") {
+      currentScene = "campfire";
+      document.getElementById("scene-img").src = "https://i.imgur.com/zADlRHO.jpeg";
+      hideAllHotspots();
+      document.getElementById("hotspots-campfire").style.display = "block";
+      document.getElementById("footer-loc").textContent = "📍 LOCATION: Campfire Grounds (Cabins 5 & 6)";
+      document.getElementById("footer-hint").textContent = "Ask your partner which door color is correct!";
+    } else if (currentScene === "inf_counter") {
+      currentScene = "inf_interior";
+      document.getElementById("scene-img").src = "https://i.imgur.com/4HsHMRz.jpeg";
+      hideAllHotspots();
+      document.getElementById("hotspots-inf-interior").style.display = "block";
+      document.getElementById("footer-loc").textContent = "📍 LOCATION: Inside Infirmary (Ward Room)";
+      document.getElementById("footer-hint").textContent = "Examine the medicine counter in the center.";
+    } else if (currentScene === "inf_interior") {
+      loadAct2Exterior();
+    } else if (currentScene === "gen_panel") {
+      currentScene = "gen_interior";
+      document.getElementById("scene-img").src = "https://i.imgur.com/oSWnzx3.jpeg";
+      hideAllHotspots();
+      document.getElementById("hotspots-gen-interior").style.display = "block";
+      document.getElementById("footer-loc").textContent = "📍 LOCATION: Inside Generator Shed (Diesel Engine)";
+      document.getElementById("footer-hint").textContent = "Examine the breaker panel on the right wall!";
+    } else if (currentScene === "gen_interior") {
+      loadAct3Exterior();
+    } else if (currentScene === "gate_console") {
+      currentScene = "shack_interior";
+      document.getElementById("scene-img").src = "https://i.imgur.com/HQMaEZA.jpeg";
+      hideAllHotspots();
+      document.getElementById("hotspots-shack-interior").style.display = "block";
+      document.getElementById("footer-loc").textContent = "📍 LOCATION: Inside Security Guard Shack";
+      document.getElementById("footer-hint").textContent = "Examine the wall control console on the far right!";
+    } else if (currentScene === "shack_interior") {
+      loadAct4Exterior();
+    }
+  }
+
+  function jumpToAct(actNum) {
+    if (actNum == "1") {
+      currentAct = 1;
+      currentScene = "fork";
+      document.getElementById("scene-img").src = "https://i.imgur.com/QtDiwVn.jpeg";
+      hideAllHotspots();
+      document.getElementById("hotspots-fork").style.display = "block";
+      document.getElementById("trk-1").className = "track-step active";
+      document.getElementById("trk-2").className = "track-step";
+      document.getElementById("trk-3").className = "track-step";
+      document.getElementById("trk-4").className = "track-step";
+      document.getElementById("footer-loc").textContent = "📍 LOCATION: Crossroad Fork (Camp Nightwing)";
+      document.getElementById("btn-back").style.display = "none";
+    } else if (actNum == "2") {
+      loadAct2Exterior();
+      document.getElementById("trk-1").className = "track-step completed";
+      document.getElementById("trk-2").className = "track-step active";
+      document.getElementById("trk-3").className = "track-step";
+      document.getElementById("trk-4").className = "track-step";
+      document.getElementById("inv-radio").style.display = "inline-block";
+      document.getElementById("inv-radio").className = "inv-tag inv-acquired";
+    } else if (actNum == "3") {
+      loadAct3Exterior();
+      document.getElementById("trk-1").className = "track-step completed";
+      document.getElementById("trk-2").className = "track-step completed";
+      document.getElementById("trk-3").className = "track-step active";
+      document.getElementById("trk-4").className = "track-step";
+      document.getElementById("inv-radio").style.display = "inline-block";
+      document.getElementById("inv-radio").className = "inv-tag inv-acquired";
+      document.getElementById("inv-gen-key").style.display = "inline-block";
+      document.getElementById("inv-gen-key").className = "inv-tag inv-acquired";
+    } else if (actNum == "4") {
+      loadAct4Exterior();
+      document.getElementById("trk-1").className = "track-step completed";
+      document.getElementById("trk-2").className = "track-step completed";
+      document.getElementById("trk-3").className = "track-step completed";
+      document.getElementById("trk-4").className = "track-step active";
+      document.getElementById("inv-radio").style.display = "inline-block";
+      document.getElementById("inv-radio").className = "inv-tag inv-acquired";
+      document.getElementById("inv-gen-key").style.display = "inline-block";
+      document.getElementById("inv-gen-key").className = "inv-tag inv-acquired";
+      document.getElementById("inv-power").style.display = "inline-block";
+      document.getElementById("inv-power").className = "inv-tag inv-acquired";
+    }
   }
 </script>
 </body>
